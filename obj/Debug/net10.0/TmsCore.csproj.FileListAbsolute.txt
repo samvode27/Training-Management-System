@@ -7,7 +7,6 @@ C:\Users\setar\OneDrive\Desktop\aaaaaaaaaaaa\TmsCore\obj\Debug\net10.0\TmsCore.G
 C:\Users\setar\OneDrive\Desktop\aaaaaaaaaaaa\TmsCore\obj\Debug\net10.0\TmsCore.AssemblyInfoInputs.cache
 C:\Users\setar\OneDrive\Desktop\aaaaaaaaaaaa\TmsCore\obj\Debug\net10.0\TmsCore.AssemblyInfo.cs
 C:\Users\setar\OneDrive\Desktop\aaaaaaaaaaaa\TmsCore\obj\Debug\net10.0\TmsCore.csproj.CoreCompileInputs.cache
-C:\Users\setar\OneDrive\Desktop\aaaaaaaaaaaa\TmsCore\obj\Debug\net10.0\TmsCore.sourcelink.json
 C:\Users\setar\OneDrive\Desktop\aaaaaaaaaaaa\TmsCore\obj\Debug\net10.0\TmsCore.dll
 C:\Users\setar\OneDrive\Desktop\aaaaaaaaaaaa\TmsCore\obj\Debug\net10.0\refint\TmsCore.dll
 C:\Users\setar\OneDrive\Desktop\aaaaaaaaaaaa\TmsCore\obj\Debug\net10.0\TmsCore.pdb
