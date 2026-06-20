@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\setar\\OneDrive\\Desktop\\aaaaaaaaaaaa\\TmsCore\\TmsCore.csproj": {}
+    "C:\\Users\\setar\\OneDrive\\Desktop\\Training-Management-System\\TmsCore\\TmsCore.csproj": {}
   },
   "projects": {
-    "C:\\Users\\setar\\OneDrive\\Desktop\\aaaaaaaaaaaa\\TmsCore\\TmsCore.csproj": {
+    "C:\\Users\\setar\\OneDrive\\Desktop\\Training-Management-System\\TmsCore\\TmsCore.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\setar\\OneDrive\\Desktop\\aaaaaaaaaaaa\\TmsCore\\TmsCore.csproj",
+        "projectUniqueName": "C:\\Users\\setar\\OneDrive\\Desktop\\Training-Management-System\\TmsCore\\TmsCore.csproj",
         "projectName": "TmsCore",
-        "projectPath": "C:\\Users\\setar\\OneDrive\\Desktop\\aaaaaaaaaaaa\\TmsCore\\TmsCore.csproj",
+        "projectPath": "C:\\Users\\setar\\OneDrive\\Desktop\\Training-Management-System\\TmsCore\\TmsCore.csproj",
         "packagesPath": "C:\\Users\\setar\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\setar\\OneDrive\\Desktop\\aaaaaaaaaaaa\\TmsCore\\obj\\",
+        "outputPath": "C:\\Users\\setar\\OneDrive\\Desktop\\Training-Management-System\\TmsCore\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\setar\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -61,7 +61,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.301/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
