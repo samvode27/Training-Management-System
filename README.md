@@ -1,27 +1,13 @@
-# Module 2 - Session 1
+# Module 3 - Session 1
 
-## Topics
+## Topic
+Git Advanced Commands and Conflict Resolution
 
-- TypeScript Basics
-- Strict Mode
-- any vs unknown vs never
-- Interfaces
-- readonly
-- Optional Properties
-- satisfies Operator
+## Objectives
 
-## Key Rule
+- Understand Git branching
+- Learn merge conflicts
+- Practice conflict resolution
 
-Never use any in production code.
+---
 
-Prefer:
-
-- unknown
-- type guards
-- strict mode
-
-## Run
-
-npm install
-
-npm run dev
