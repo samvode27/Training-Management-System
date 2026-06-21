@@ -1,27 +1,23 @@
-# Module 2 - Session 1
+# 🧩 Session 1 – Dependency Injection (DI)
 
-## Topics
+- Reduce tight coupling
+- Improve testability
+- Make code maintainable
 
-- TypeScript Basics
-- Strict Mode
-- any vs unknown vs never
-- Interfaces
-- readonly
-- Optional Properties
-- satisfies Operator
+---
 
-## Key Rule
+## 🧠 Key Concepts
 
-Never use any in production code.
+### 🔹 What is DI?
+Instead of creating objects manually, they are provided by the framework.
 
-Prefer:
+---
 
-- unknown
-- type guards
-- strict mode
+## 🏗️ Implementation
 
-## Run
-
-npm install
-
-npm run dev
+### Interface
+```csharp
+public interface IEmailService
+{
+    void Send(string message);
+}
