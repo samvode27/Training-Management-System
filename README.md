@@ -1,5 +1,9 @@
 # 🧩 Session 1 – Dependency Injection (DI)
 
+
+## 📌 Overview
+Learned how to use Dependency Injection (DI) in ASP.NET Core.
+
 - Reduce tight coupling
 - Improve testability
 - Make code maintainable
