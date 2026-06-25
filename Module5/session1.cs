@@ -1,64 +1,59 @@
-// Entity Framework
+// Topic 1: IQueryable vs List
 
-var students = await context.Students.ToListAsync(); // EF Core generates the SQL automatically
+// // IQueryable
+// var query = context.Students
+//                 .Where(s => s.GPA >= 3.0);
 
-context.Students.Add(student); // add student
-INSERT INTO Students // EF translates
+// IQueryable<Student>      // Instructions(not data)
 
-// DbContext (database manager)
+// // List
+// var students = query.ToList();
 
-public class TmsDbContext : DbContext
-{
-    public DbSet<Student> Students { get; set; }
-
-    public DbSet<Course> Courses { get; set; }
-}
-
-// DbSet (Represent Table)
-
-public DbSet<Student> Students { get; set; }
+// List<Student>    // Actual student objects
 
 
-// SaveChanges()
-
-var student = new Student
-{
-    FullName = "Bewketu"
-};
-
-context.Students.Add(student);
-await context.SaveChangesAsync(); // Database Updated
 
 
-// CRUD Operations
+// Materialization
+// bad
+// context.Students
+//        .ToList()
+//        .Where(s => s.GPA >= 3.5);
 
-// Create (Add)
-var student = new Student
-{
-    FullName = "Abebe"
-};
-
-context.Students.Add(student);
-
-await context.SaveChangesAsync();  // INSERT INTO Students(sql)
- 
-// Read (Get)
-
-var students = await context.Students.ToListAsync();  // SELECT * FROM Students(sql)
-
-// Update
-
-var student = await context.Students.FindAsync(1); // find
-
-student.FullName = "Kebede"; // modify
-
-await context.SaveChangesAsync();  // save
+// // good
+// context.Students
+//        .Where(s => s.GPA >= 3.5)
+//        .ToList();
 
 
-// Delete
-context.Students.Remove(student);
-
-await context.SaveChangesAsync();  // DELETE FROM Students
 
 
-// Relationships
+// Deferred Execution
+
+// // Building SQL Not executing SQL
+// Where()
+// OrderBy()
+// Select()
+// GroupBy()
+
+// // Execute SQL NOW
+// ToList()
+// FirstOrDefault()
+// Count()
+// Any()
+
+
+
+
+// Server-Side vs Client-Side Processing
+
+// Good Way (Server-Side)
+// context.Students
+//        .Where(s => s.GPA >= 3.5)
+//        .ToList();
+
+// Bad Way (Client-Side)
+// context.Students
+//        .AsEnumerable()
+//        .Where(s => IsHonorRoll(s.GPA))
+//        .ToList();
