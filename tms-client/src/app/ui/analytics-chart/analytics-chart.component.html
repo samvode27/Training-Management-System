@@ -1,0 +1,10 @@
+<div class="chart-container">
+    <h3>Enrollment Trends (Last 30 Days)</h3>
+    <div *ngIf="chartData; else loadingOrError">
+        <canvas baseChart [data]="chartData" [labels]="chartLabels" [type]="'line'" [options]="chartOptions"></canvas>
+    </div>
+    <ng-template #loadingOrError>
+        <div *ngIf="isLoading">Loading analytics...</div>
+        <div *ngIf="error" class="error">{{ error }}</div>
+    </ng-template>
+</div>

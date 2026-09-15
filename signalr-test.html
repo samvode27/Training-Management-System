@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SignalR Test</title>
+</head>
+<body>
+  <h1>SignalR Test</h1>
+  <button id="connectBtn">Connect</button>
+  <pre id="output">Waiting...</pre>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+  <script>
+    const output = document.getElementById('output');
+    const connectBtn = document.getElementById('connectBtn');
+
+    function log(message) {
+      output.textContent += '\n' + message;
+      console.log(message);
+    }
+
+    connectBtn.addEventListener('click', async () => {
+      log('Starting connection...');
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl('http://localhost:5282/hubs/tms?studentId=1')
+        .withAutomaticReconnect()
+        .build();
+
+      connection.on('ReceiveGradePosted', (courseCode, studentId, grade) => {
+        log(`Received: ${courseCode}, ${studentId}, ${grade}`);
+      });
+
+      try {
+        await connection.start();
+        log('Connected successfully');
+        log('Connection ID: ' + connection.connectionId);
+      } catch (err) {
+        log('Connection failed: ' + err);
+      }
+    });
+  </script>
+</body>
+</html>

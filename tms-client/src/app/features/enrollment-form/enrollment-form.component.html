@@ -1,0 +1,148 @@
+<div class="enrollment-wrapper">
+  <div class="enrollment-card">
+    <div class="card-header-styled">
+      <div class="header-icon-box">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <line x1="19" y1="8" x2="19" y2="14"></line>
+          <line x1="22" y1="11" x2="16" y2="11"></line>
+        </svg>
+      </div>
+      <div>
+        <h1 class="header-title">Official Course Registration</h1>
+        <p class="header-subtitle">Submit your course enrollment request for instructor approval.</p>
+      </div>
+    </div>
+
+    @if (submitted()) {
+      <div class="success-celebration-card">
+        <div class="celebration-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h2>Enrollment Request Submitted!</h2>
+        <p class="celebration-msg">
+          Your request for <strong>{{ createdEnrollment()?.courseName }}</strong> has been recorded and marked as <strong>Pending Approval</strong>.
+        </p>
+        <div class="celebration-actions">
+          <a routerLink="/student" class="btn-return-dashboard">View in Student Hub</a>
+          <button type="button" (click)="submitted.set(false)" class="btn-enroll-another">Enroll Another Course</button>
+        </div>
+      </div>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" class="enroll-form">
+        <!-- Student Info Banner -->
+        <div class="student-info-strip">
+          <div class="s-strip-avatar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div class="s-strip-text">
+            <span>Registering Student: <strong>{{ currentUser()?.displayName || 'Active Student' }}</strong></span>
+            <span class="s-strip-email">{{ currentUser()?.email }}</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <!-- Student ID -->
+          <div class="custom-field-group">
+            <label class="field-label" for="studentId">Student ID Number</label>
+            <input
+              id="studentId"
+              class="custom-input"
+              formControlName="studentId"
+              placeholder="e.g. STU-1001"
+            />
+            @if (form.controls.studentId.touched && form.controls.studentId.invalid) {
+              <span class="field-error">Format: STU-0000</span>
+            }
+          </div>
+
+          <!-- Course Selector -->
+          <div class="custom-field-group">
+            <label class="field-label" for="courseId">Target Course Module</label>
+            <select
+              id="courseId"
+              class="custom-input custom-select"
+              formControlName="courseId"
+            >
+              <option value="" disabled>-- Select Course from Catalog --</option>
+              @for (c of courses(); track c.id) {
+                <option [value]="c.id">
+                  {{ c.code }}: {{ c.title }} ({{ c.enrollmentCount || 0 }}/{{ c.maxCapacity || 30 }} seats)
+                </option>
+              }
+            </select>
+            @if (form.controls.courseId.touched && form.controls.courseId.invalid) {
+              <span class="field-error">Please select a course to register</span>
+            }
+          </div>
+        </div>
+
+        <!-- Term -->
+        <div class="custom-field-group">
+          <label class="field-label" for="term">Academic Term</label>
+          <input
+            id="term"
+            class="custom-input"
+            formControlName="term"
+            placeholder="e.g. Fall 2026"
+          />
+          @if (form.controls.term.touched && form.controls.term.invalid) {
+            <span class="field-error">Term is required</span>
+          }
+        </div>
+
+        <!-- Notes -->
+        <div class="custom-field-group">
+          <label class="field-label" for="notes">Student Notes / Academic Goal (Optional)</label>
+          <textarea
+            id="notes"
+            class="custom-textarea"
+            formControlName="notes"
+            placeholder="Optional message for your instructor or advisor..."
+          ></textarea>
+        </div>
+
+        <!-- Backup Courses Section -->
+        <div class="backups-panel">
+          <div class="backups-header">
+            <div>
+              <span class="backups-title">Alternative Backup Courses</span>
+              <p class="backups-sub">Select alternates if this section is filled at capacity.</p>
+            </div>
+            <button type="button" (click)="addBackup()" class="btn-add-backup">
+              + Add Backup
+            </button>
+          </div>
+
+          @for (backup of backups.controls; track $index) {
+            <div class="backup-input-row">
+              <input
+                [formControl]="backup"
+                class="custom-input backup-input"
+                [placeholder]="'Alternate course code (e.g. CSE-10' + ($index + 2) + ')'"
+              />
+              <button type="button" (click)="removeBackup($index)" class="btn-remove-backup">
+                ✕
+              </button>
+            </div>
+          }
+        </div>
+
+        <button
+          type="submit"
+          [disabled]="form.invalid"
+          class="btn-submit-enrollment"
+        >
+          Confirm & Submit Enrollment Request
+        </button>
+      </form>
+    }
+  </div>
+</div>

@@ -1,0 +1,321 @@
+<div class="admin-users-page">
+  <!-- Page Header & Summary -->
+  <div class="page-heading">
+    <div>
+      <div class="portal-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span>Administrator Console</span>
+      </div>
+      <h1 class="page-title">User Access & Approval Center</h1>
+      <p class="page-subtitle">Review new registration applications, verify institutional roles, and activate accounts.</p>
+    </div>
+
+    <div class="header-tools">
+      <button class="btn-refresh" (click)="loadUsers()" [disabled]="isLoading()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="isLoading()">
+          <path d="M23 4v6h-6"></path>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        <span>Refresh Users</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Metric Cards -->
+  <div class="metric-cards-grid">
+    <div class="metric-card pending-card" [class.active-metric]="filterTab() === 'pending'" (click)="filterTab.set('pending')">
+      <div class="metric-icon-box pending-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Pending Approval</span>
+        <span class="metric-value pending-val">{{ pendingCount() }}</span>
+        <span class="metric-hint">Awaiting Admin Decision</span>
+      </div>
+    </div>
+
+    <div class="metric-card approved-card" [class.active-metric]="filterTab() === 'all'" (click)="filterTab.set('all')">
+      <div class="metric-icon-box approved-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Active & Approved</span>
+        <span class="metric-value approved-val">{{ approvedCount() }}</span>
+        <span class="metric-hint">Full Access Granted</span>
+      </div>
+    </div>
+
+    <div class="metric-card rejected-card" [class.active-metric]="filterTab() === 'rejected'" (click)="filterTab.set('rejected')">
+      <div class="metric-icon-box rejected-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Declined / Blocked</span>
+        <span class="metric-value rejected-val">{{ rejectedCount() }}</span>
+        <span class="metric-hint">Access Restricted</span>
+      </div>
+    </div>
+
+    <div class="metric-card total-card" (click)="filterTab.set('all')">
+      <div class="metric-icon-box total-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Total Accounts</span>
+        <span class="metric-value">{{ totalCount() }}</span>
+        <span class="metric-hint">Registered in Database</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feedback Banner -->
+  @if (feedbackMessage()) {
+    <div class="feedback-banner">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      <span>{{ feedbackMessage() }}</span>
+    </div>
+  }
+
+  <!-- Filter Navigation & Search Bar -->
+  <div class="toolbar-section">
+    <div class="filter-tabs">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="filterTab() === 'pending'"
+        (click)="filterTab.set('pending')"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Pending Requests</span>
+        @if (pendingCount() > 0) {
+          <span class="tab-badge-pending">{{ pendingCount() }}</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="filterTab() === 'all'"
+        (click)="filterTab.set('all')"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+        </svg>
+        <span>All Accounts</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="filterTab() === 'instructor'"
+        (click)="filterTab.set('instructor')"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+        </svg>
+        <span>Instructors</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="filterTab() === 'student'"
+        (click)="filterTab.set('student')"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+        </svg>
+        <span>Students</span>
+      </button>
+
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="filterTab() === 'rejected'"
+        (click)="filterTab.set('rejected')"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+        <span>Declined</span>
+      </button>
+    </div>
+
+    <div class="search-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input
+        type="text"
+        placeholder="Search applicant name, email, or role..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+        class="search-input"
+      />
+    </div>
+  </div>
+
+  <!-- Users Table Card -->
+  <div class="table-card">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Loading registered user records...</span>
+      </div>
+    } @else if (filteredUsers().length === 0) {
+      <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <h3>No user records found</h3>
+        <p>There are no registration requests matching your current filter.</p>
+      </div>
+    } @else {
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>Applicant</th>
+            <th>Email Address</th>
+            <th>Requested Role</th>
+            <th>Registered Date</th>
+            <th>Approval Status</th>
+            <th class="actions-header">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of filteredUsers(); track user.id) {
+            <tr class="user-row" [class.pending-row]="user.approvalStatus === 'Pending'">
+              <!-- User Name & Avatar -->
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar" [class.avatar-instructor]="user.role === 'Instructor'" [class.avatar-admin]="user.role === 'Admin'">
+                    {{ (user.firstName || user.displayName || user.email)[0].toUpperCase() }}
+                  </div>
+                  <div>
+                    <strong class="user-name">{{ user.displayName || user.firstName + ' ' + user.lastName }}</strong>
+                    <div class="user-id">ID: {{ user.id.slice(0, 8) }}...</div>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Email -->
+              <td>
+                <span class="email-text">{{ user.email }}</span>
+              </td>
+
+              <!-- Role -->
+              <td>
+                <span class="role-pill" [class]="'role-' + user.role.toLowerCase()">
+                  {{ user.role }}
+                </span>
+              </td>
+
+              <!-- Registered Date -->
+              <td>
+                <span class="date-text">{{ user.createdAt | date:'mediumDate' }}</span>
+              </td>
+
+              <!-- Approval Status Badge -->
+              <td>
+                <span class="status-badge" [class]="'badge-' + user.approvalStatus.toLowerCase()">
+                  @if (user.approvalStatus === 'Approved') {
+                    <span class="badge-dot"></span> Active & Approved
+                  } @else if (user.approvalStatus === 'Pending') {
+                    <span class="badge-dot dot-pending"></span> Awaiting Approval
+                  } @else {
+                    <span class="badge-dot dot-rejected"></span> Declined
+                  }
+                </span>
+              </td>
+
+              <!-- Actions -->
+              <td>
+                <div class="actions-cell">
+                  @if (user.approvalStatus === 'Pending') {
+                    <button
+                      type="button"
+                      class="btn-approve"
+                      (click)="approve(user)"
+                      [disabled]="actionInProgressId() === user.id"
+                      title="Approve registration and grant login access"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Approve</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn-reject"
+                      (click)="reject(user)"
+                      [disabled]="actionInProgressId() === user.id"
+                      title="Decline this registration request"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                      <span>Reject</span>
+                    </button>
+                  } @else if (user.approvalStatus === 'Approved') {
+                    <button
+                      type="button"
+                      class="btn-deactivate"
+                      (click)="reject(user)"
+                      [disabled]="actionInProgressId() === user.id || user.role === 'Admin'"
+                      title="Suspend user access"
+                    >
+                      <span>Deactivate</span>
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn-reapprove"
+                      (click)="approve(user)"
+                      [disabled]="actionInProgressId() === user.id"
+                      title="Re-activate and approve user"
+                    >
+                      <span>Re-Approve</span>
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

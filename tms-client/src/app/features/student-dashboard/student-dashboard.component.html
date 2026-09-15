@@ -1,0 +1,1428 @@
+<div class="student-hub">
+  <!-- Top Banner & Welcome -->
+  <div class="hub-header">
+    <div>
+      <h1 class="welcome-heading">
+        {{ isAdmin() ? 'Institutional Student Performance & Transcript Hub' : 'Welcome back, ' }}
+        <span class="highlight">{{ isAdmin() ? 'Administrator' : studentName() }}</span>
+      </h1>
+      <p class="welcome-sub">
+        {{ isAdmin()
+            ? 'Academy-wide grading analytics, certificate verification, faculty workload management, and student academic performance records.'
+            : 'Track your active enrollments, course grades, official transcripts, degree requirements, and graduation milestones.' }}
+      </p>
+    </div>
+
+    <div class="header-action-group">
+      <!-- Admin Faculty Matrix Button -->
+      @if (isAdmin()) {
+        <button (click)="openFacultyWorkloadModal()" class="btn-secondary-action">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span>Faculty Workload Matrix</span>
+        </button>
+      }
+
+      <button (click)="openTranscriptModal()" class="btn-secondary-action">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        <span>{{ isAdmin() ? 'Institutional Transcript Registry' : 'Official Academic Transcript' }}</span>
+      </button>
+
+      @if (!isAdmin()) {
+        <button (click)="toggleGpaCalculator()" class="btn-secondary-action">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+            <line x1="8" y1="6" x2="16" y2="6"></line>
+            <line x1="8" y1="10" x2="16" y2="10"></line>
+            <line x1="8" y1="14" x2="16" y2="14"></line>
+            <line x1="8" y1="18" x2="16" y2="18"></line>
+          </svg>
+          <span>GPA Simulator</span>
+        </button>
+
+        <button (click)="registerForClass()" class="btn-primary-action">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Register for Class (+3 Credits)</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Metric Stat Cards Grid -->
+  <div class="stats-grid">
+    <!-- Stat 1: Total Credits / Academy Scope -->
+    <div class="stat-card">
+      <div class="stat-icon-wrapper credits-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">{{ isAdmin() ? 'Total Completed Credits' : 'Academic Credits Earned' }}</span>
+        <div class="stat-value">
+          {{ earnedCredits() }} <span class="stat-target">{{ isAdmin() ? 'Academy Total' : '/ 120 Total' }}</span>
+        </div>
+        <div class="stat-progress-track">
+          <div class="stat-progress-bar" [style.width.%]="isAdmin() ? 85 : (earnedCredits() / 120) * 100"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat 2: Cumulative GPA / Performance -->
+    <div class="stat-card">
+      <div class="stat-icon-wrapper gpa-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">{{ isAdmin() ? 'Academy Average Score' : 'Cumulative GPA' }}</span>
+        <div class="stat-value gpa-text">
+          {{ isAdmin() ? gradeStats().avgScore + '%' : cumulativeGpa() }}
+          <span class="stat-target">{{ isAdmin() ? 'Overall Pass Rate' : '/ 4.00' }}</span>
+        </div>
+        <span class="stat-note">{{ isAdmin() ? gradeStats().certifiedCount + ' Certificates Issued' : 'Dean\'s Honor Standing' }}</span>
+      </div>
+    </div>
+
+    <!-- Stat 3: Enrolled Modules -->
+    <div class="stat-card">
+      <div class="stat-icon-wrapper courses-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">{{ isAdmin() ? 'Academy Enrollments' : 'Enrolled Modules' }}</span>
+        <div class="stat-value">{{ myEnrollments().length }} {{ isAdmin() ? 'Registered' : 'Active' }}</div>
+        <span class="stat-note">Institutional Term Fall 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Exclusive: Dynamic Academic Pathway, Milestone Matrix & Interactive Planner -->
+  @if (!isAdmin()) {
+    <!-- Dynamic Academic Standing & Honor Banner -->
+    <div class="student-feature-banner">
+      <div class="banner-text-col">
+        <div class="banner-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <span>{{ academicHonorStanding().title }}</span>
+        </div>
+        <h3>Academic Pathway & Graduation Milestone Matrix</h3>
+        <p>Dynamic curriculum tracking connected directly to your enrolled academy modules, grades, and degree requirements.</p>
+      </div>
+
+      <div class="banner-metrics-col">
+        <div class="banner-metric-pill">
+          <span class="b-num">{{ trackStats().progressPercent }}%</span>
+          <span class="b-label">Track Progress</span>
+        </div>
+        <div class="banner-metric-pill">
+          <span class="b-num">{{ trackStats().completedCredits }}/{{ trackStats().totalCredits }}</span>
+          <span class="b-label">Milestone Credits</span>
+        </div>
+        <div class="banner-metric-pill">
+          <span class="b-num">{{ cumulativeGpa() }}</span>
+          <span class="b-label">Active GPA</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Interactive Tools Grid (Goal Planner + Target GPA Simulator) -->
+    <div class="student-interactive-grid">
+      <!-- 1. Interactive Academic Goal Planner -->
+      <div class="gpa-sim-card">
+        <div class="card-top-head">
+          <div>
+            <h3>Personal Academic Focus & Objectives</h3>
+            <p>Set custom semester targets, project milestones, and exam goals.</p>
+          </div>
+          <span class="pill-badge">{{ studentGoals().length }} Goals</span>
+        </div>
+
+        <div class="goal-box">
+          <div class="goal-input-row">
+            <input
+              type="text"
+              [ngModel]="newGoalText()"
+              (ngModelChange)="newGoalText.set($event)"
+              (keyup.enter)="addAcademicGoal()"
+              class="goal-input"
+              placeholder="e.g. Score 90%+ in RESTful Web APIs, Deploy Capstone..."
+            />
+            <button (click)="addAcademicGoal()" class="btn-add-goal">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Add</span>
+            </button>
+          </div>
+
+          <div class="goal-list">
+            @for (goal of studentGoals(); track goal.id) {
+              <div class="goal-item" [class.goal-done]="goal.completed">
+                <input
+                  type="checkbox"
+                  [checked]="goal.completed"
+                  (change)="toggleGoalCompletion(goal.id)"
+                  class="goal-checkbox"
+                />
+                <span class="goal-label" (click)="toggleGoalCompletion(goal.id)">{{ goal.title }}</span>
+                @if (goal.grade) {
+                  <span class="goal-grade-tag">{{ goal.grade }}%</span>
+                }
+                <button (click)="deleteGoal(goal.id)" class="btn-delete-goal" title="Remove goal">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Target GPA Simulator -->
+      <div class="gpa-sim-card">
+        <div class="card-top-head">
+          <div>
+            <h3>Target GPA & Graduation Calculator</h3>
+            <p>Simulate projected graduation standing by adjusting target performance.</p>
+          </div>
+          <span class="pill-badge">{{ targetGpa() >= 3.8 ? 'Dean\'s List' : 'Good Standing' }}</span>
+        </div>
+
+        <div class="simulator-form">
+          <div class="sim-field">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label>Target GPA Outcome</label>
+              <strong style="color: var(--primary); font-size: 1.1rem;">{{ targetGpa() }} / 4.00</strong>
+            </div>
+            <input
+              type="range"
+              min="3.0"
+              max="4.0"
+              step="0.05"
+              [ngModel]="targetGpa()"
+              (ngModelChange)="targetGpa.set($event)"
+              class="sim-slider"
+            />
+            <div class="slider-labels">
+              <span>3.00 (Pass)</span>
+              <span>3.50 (Honors)</span>
+              <span>3.85 (High Honors)</span>
+              <span>4.00 (Perfect)</span>
+            </div>
+          </div>
+
+          <div class="sim-result-box">
+            <div class="sim-res-val">{{ targetGpa() }}</div>
+            <div class="sim-res-text">
+              <strong>{{ targetGpa() >= 3.85 ? 'Required Score: 92%+ (Grade A)' : targetGpa() >= 3.5 ? 'Required Score: 85%+ (Grade B+)' : 'Required Score: 75%+ (Grade B)' }}</strong>
+              <div style="color: var(--text-muted); font-size: 0.78rem; margin-top: 2px;">
+                Calculated over {{ remainingCredits() }} remaining degree credits.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Dynamic Curriculum Pathway & Degree Matrix -->
+    <div class="degree-checklist-card">
+      <div class="checklist-header">
+        <div class="pathway-info-col">
+          <div class="pathway-title-row">
+            <h3>Academic Curriculum & Program Milestones</h3>
+            <span class="badge-checklist-status" [class.badge-ready]="trackStats().isGraduationReady">
+              {{ trackStats().isGraduationReady ? 'Graduation Ready' : 'In Progress (' + trackStats().progressPercent + '%)' }}
+            </span>
+          </div>
+          <p class="checklist-sub">Select your active degree pathway to verify module completions and prerequisite tracks:</p>
+        </div>
+
+        <!-- Track Selector Tabs -->
+        <div class="track-selector-tabs">
+          <button
+            type="button"
+            class="track-tab-btn"
+            [class.active-track]="selectedTrackId() === 'software-eng'"
+            (click)="selectTrack('software-eng')"
+          >
+            Software Eng (B.S.)
+          </button>
+          <button
+            type="button"
+            class="track-tab-btn"
+            [class.active-track]="selectedTrackId() === 'cloud-devops'"
+            (click)="selectTrack('cloud-devops')"
+          >
+            Cloud & DevOps
+          </button>
+          <button
+            type="button"
+            class="track-tab-btn"
+            [class.active-track]="selectedTrackId() === 'data-ai'"
+            (click)="selectTrack('data-ai')"
+          >
+            Data & AI Systems
+          </button>
+          <button
+            type="button"
+            class="track-tab-btn"
+            [class.active-track]="selectedTrackId() === 'all-catalog'"
+            (click)="selectTrack('all-catalog')"
+          >
+            All Academy Catalog
+          </button>
+        </div>
+      </div>
+
+      <!-- Track Progress Bar -->
+      <div class="track-progress-wrapper">
+        <div class="track-progress-stats">
+          <span>Earned Milestones: <strong>{{ trackStats().completedCredits }} Credits Completed</strong></span>
+          <span>Program Total: <strong>{{ trackStats().totalCredits }} Credits</strong></span>
+        </div>
+        <div class="track-progress-track">
+          <div class="track-progress-fill" [style.width.%]="trackStats().progressPercent"></div>
+        </div>
+      </div>
+
+      <!-- Milestone Modules Grid -->
+      <div class="milestones-grid">
+        @for (milestone of activeTrackMilestones(); track milestone.code) {
+          <div class="milestone-card" [class.milestone-completed]="milestone.status === 'completed'" [class.milestone-active]="milestone.status === 'in-progress'">
+            <div class="m-card-top">
+              <span class="m-dept-tag">{{ milestone.department }}</span>
+              <span class="m-credits-tag">{{ milestone.credits }} Credits</span>
+            </div>
+
+            <div class="m-card-body">
+              <div class="m-code-title">
+                <span class="m-code">{{ milestone.code }}</span>
+                <h4 class="m-title">{{ milestone.name }}</h4>
+              </div>
+              <p class="m-desc">{{ milestone.description }}</p>
+            </div>
+
+            <div class="m-card-footer">
+              <span
+                class="m-status-pill"
+                [class.pill-completed]="milestone.status === 'completed'"
+                [class.pill-active]="milestone.status === 'in-progress'"
+                [class.pill-pending]="milestone.status === 'pending'"
+                [class.pill-available]="milestone.status === 'available'"
+              >
+                @if (milestone.status === 'completed') {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                }
+                {{ milestone.statusLabel }}
+              </span>
+
+              <button (click)="handleMilestoneAction(milestone)" class="btn-m-action">
+                {{ milestone.isCompleted ? 'View Transcript' : milestone.isEnrolled ? 'View Module' : 'Enroll Now' }}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Admin Exclusive: Grade Distribution & Performance Analytics -->
+  @if (isAdmin()) {
+    <section class="admin-analytics-section">
+      <div class="distribution-header">
+        <div>
+          <h2 class="section-title">Institutional Grade Distribution & Performance Modes</h2>
+          <p class="section-sub">Select view mode or launch dedicated interactive analytical and tabular popups.</p>
+        </div>
+        <div class="view-mode-tabs">
+          <button
+            type="button"
+            class="view-tab-btn"
+            [class.active-view]="adminViewMode() === 'cards'"
+            (click)="openViewMode('cards')"
+            title="Display interactive student cards"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Card View</span>
+          </button>
+          <button
+            type="button"
+            class="view-tab-btn"
+            [class.active-view]="adminViewMode() === 'distribution'"
+            (click)="openViewMode('distribution')"
+            title="Open deep analytics popup dialog"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span>Analytics Breakdown</span>
+          </button>
+          <button
+            type="button"
+            class="view-tab-btn"
+            [class.active-view]="adminViewMode() === 'table'"
+            (click)="openViewMode('table')"
+            title="Open complete registry table popup"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18"></path>
+            </svg>
+            <span>Registry Table</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Grade Breakdown Distribution Cards -->
+      <div class="grade-distribution-grid">
+        <div class="dist-card grade-a-card" (click)="openViewMode('distribution')" style="cursor: pointer;">
+          <div class="dist-top">
+            <span class="grade-letter-badge badge-a">Grade A</span>
+            <span class="dist-score-range">90% – 100%</span>
+          </div>
+          <div class="dist-count">{{ gradeStats().a.count }} Students</div>
+          <div class="dist-bar-track">
+            <div class="dist-bar-fill bar-a" [style.width.%]="gradeStats().a.pct"></div>
+          </div>
+          <span class="dist-pct">{{ gradeStats().a.pct }}% of graded cohort</span>
+        </div>
+
+        <div class="dist-card grade-b-card" (click)="openViewMode('distribution')" style="cursor: pointer;">
+          <div class="dist-top">
+            <span class="grade-letter-badge badge-b">Grade B</span>
+            <span class="dist-score-range">80% – 89%</span>
+          </div>
+          <div class="dist-count">{{ gradeStats().b.count }} Students</div>
+          <div class="dist-bar-track">
+            <div class="dist-bar-fill bar-b" [style.width.%]="gradeStats().b.pct"></div>
+          </div>
+          <span class="dist-pct">{{ gradeStats().b.pct }}% of graded cohort</span>
+        </div>
+
+        <div class="dist-card grade-c-card" (click)="openViewMode('distribution')" style="cursor: pointer;">
+          <div class="dist-top">
+            <span class="grade-letter-badge badge-c">Grade C</span>
+            <span class="dist-score-range">70% – 79%</span>
+          </div>
+          <div class="dist-count">{{ gradeStats().c.count }} Students</div>
+          <div class="dist-bar-track">
+            <div class="dist-bar-fill bar-c" [style.width.%]="gradeStats().c.pct"></div>
+          </div>
+          <span class="dist-pct">{{ gradeStats().c.pct }}% of graded cohort</span>
+        </div>
+
+        <div class="dist-card grade-d-card" (click)="openViewMode('distribution')" style="cursor: pointer;">
+          <div class="dist-top">
+            <span class="grade-letter-badge badge-d">Grade D / F</span>
+            <span class="dist-score-range">&lt; 70%</span>
+          </div>
+          <div class="dist-count">{{ gradeStats().d.count + gradeStats().f.count }} Students</div>
+          <div class="dist-bar-track">
+            <div class="dist-bar-fill bar-d" [style.width.%]="gradeStats().d.pct + gradeStats().f.pct"></div>
+          </div>
+          <span class="dist-pct">{{ gradeStats().d.pct + gradeStats().f.pct }}% remediation required</span>
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- Academic Grades & Enrolled Courses Section -->
+  <section class="dashboard-section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">
+          {{ isAdmin() ? 'Official Student Evaluation & Certificate Registry' : 'My Enrolled Courses & Academic Record' }}
+        </h2>
+        <p class="section-sub">
+          {{ isAdmin() 
+              ? 'Complete institutional record of student evaluations, academic terms, and certified completion awards.' 
+              : 'Official course registration records, term milestones, and finalized semester grades.' }}
+        </p>
+      </div>
+
+      <!-- Quick Search Bar -->
+      <div class="search-box-student">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="text"
+          placeholder="Filter by student name, course, or goals..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          class="student-search-input"
+        />
+        @if (searchQuery()) {
+          <button class="btn-clear" (click)="searchQuery.set('')">✕</button>
+        }
+      </div>
+    </div>
+
+    <div class="records-container">
+      @for (enrollment of myEnrollments(); track enrollment.id) {
+        <div class="enrollment-row">
+          <div class="enrollment-main">
+            <div class="course-badge-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              </svg>
+            </div>
+            <div>
+              <div class="course-name-line">
+                <strong class="course-name">{{ enrollment.courseName }}</strong>
+                @if (isAdmin()) {
+                  <span class="student-tag">
+                    Student: <strong>{{ enrollment.studentName }}</strong> (ID: #{{ enrollment.studentId }})
+                  </span>
+                }
+              </div>
+              <div class="meta-line">
+                <span class="term-text">Fall 2026 Term</span>
+                <span>•</span>
+                <span>Enrolled on {{ enrollment.enrolledAt | date:'mediumDate' }}</span>
+                @if (enrollment.notes) {
+                  <span>•</span>
+                  <span class="notes-preview">Goal: "{{ enrollment.notes }}"</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="enrollment-badges">
+            <!-- Status Badge -->
+            <span
+              class="badge-pill"
+              [class.badge-approved]="enrollment.status === 'Approved'"
+              [class.badge-pending]="enrollment.status === 'Pending'"
+              [class.badge-rejected]="enrollment.status === 'Rejected'"
+            >
+              {{ enrollment.status }}
+            </span>
+
+            <!-- Final Grade Badge -->
+            @if (enrollment.grade !== undefined && enrollment.grade !== null) {
+              <div class="grade-pill">
+                <span class="grade-score">{{ enrollment.grade }}%</span>
+                <span class="grade-letter">Grade {{ enrollment.letterGrade || 'A' }}</span>
+              </div>
+
+              <!-- Certificate Button -->
+              <button (click)="viewCertificate(enrollment.courseName, enrollment.studentName)" class="btn-cert" title="View official certificate of completion">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px;">
+                  <circle cx="12" cy="8" r="7"></circle>
+                  <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                </svg>
+                <span>Certificate</span>
+              </button>
+            } @else {
+              <span class="grade-pending-pill">
+                Grade In Progress
+              </span>
+            }
+
+            @if (isAdmin()) {
+              <button (click)="openTranscriptModal(enrollment.studentName)" class="btn-quick-transcript" title="View this student's transcript">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                </svg>
+                <span>Transcript</span>
+              </button>
+            }
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state-box">
+          <div class="empty-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+          </div>
+          <h3>No Active Enrollments Found</h3>
+          <p>No enrollment records match your search query.</p>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Available Course Catalog Section (For Students) -->
+  @if (!isAdmin()) {
+    <section class="dashboard-section catalog-section">
+      <div class="catalog-section-header">
+        <div>
+          <div class="catalog-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>Academy Module Offerings</span>
+          </div>
+          <h2 class="catalog-section-title">Available Course Catalog</h2>
+          <p class="catalog-section-sub">Explore active department courses, inspect 16-week accredited syllabi, and enroll in upcoming modules.</p>
+        </div>
+
+        <a routerLink="/courses" class="btn-catalog-view-all">
+          <span>Explore All {{ coursesResource.value()?.length || 0 }} Offerings</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+      </div>
+
+      <!-- Catalog Controls: Department Pills & Search Bar -->
+      <div class="catalog-toolbar">
+        <div class="catalog-dept-pills">
+          <button
+            type="button"
+            class="c-pill"
+            [class.active-c-pill]="catalogDepartmentFilter() === 'all'"
+            (click)="catalogDepartmentFilter.set('all')"
+          >
+            All Disciplines
+          </button>
+          <button
+            type="button"
+            class="c-pill"
+            [class.active-c-pill]="catalogDepartmentFilter() === 'CS'"
+            (click)="catalogDepartmentFilter.set('CS')"
+          >
+            Computer Science
+          </button>
+          <button
+            type="button"
+            class="c-pill"
+            [class.active-c-pill]="catalogDepartmentFilter() === 'Cloud'"
+            (click)="catalogDepartmentFilter.set('Cloud')"
+          >
+            Cloud & DevOps
+          </button>
+          <button
+            type="button"
+            class="c-pill"
+            [class.active-c-pill]="catalogDepartmentFilter() === 'Web'"
+            (click)="catalogDepartmentFilter.set('Web')"
+          >
+            Web Architecture
+          </button>
+          <button
+            type="button"
+            class="c-pill"
+            [class.active-c-pill]="catalogDepartmentFilter() === 'Data'"
+            (click)="catalogDepartmentFilter.set('Data')"
+          >
+            Data Systems
+          </button>
+        </div>
+
+        <div class="catalog-search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            [ngModel]="catalogSearchQuery()"
+            (ngModelChange)="catalogSearchQuery.set($event)"
+            placeholder="Search courses, titles, or faculty..."
+            class="catalog-search-input"
+          />
+          @if (catalogSearchQuery()) {
+            <button (click)="catalogSearchQuery.set('')" class="btn-clear-search">✕</button>
+          }
+        </div>
+      </div>
+
+      <!-- Course Cards Dynamic State -->
+      @if (coursesResource.isLoading()) {
+        <div class="catalog-loading-card">
+          <div class="spinner-ring"></div>
+          <span>Synchronizing course offerings from institutional database...</span>
+        </div>
+      } @else if (coursesResource.error()) {
+        <div class="catalog-error-card">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>Unable to connect to course services. Please check network connection.</span>
+        </div>
+      } @else {
+        <div class="catalog-cards-grid">
+          @for (course of filteredCatalogCourses(); track course.id) {
+            <div class="catalog-course-card" [class.enrolled-card]="isEnrolledInCourse(course.id)">
+              <!-- Card Top Header -->
+              <div class="c-card-header">
+                <div class="c-code-tag">{{ course.code }}</div>
+                <div class="c-header-right">
+                  <span class="c-dept-pill">{{ getCurriculumForCourse(course).department }}</span>
+                  <span class="c-credits-pill">{{ getCurriculumForCourse(course).credits }} Cr</span>
+                </div>
+              </div>
+
+              <!-- Card Body -->
+              <div class="c-card-body">
+                <h3 class="c-title">
+                  <a [routerLink]="['/courses', course.id]">{{ course.title }}</a>
+                </h3>
+
+                <p class="c-summary">{{ getCurriculumForCourse(course).summary }}</p>
+
+                <div class="c-faculty-row">
+                  <div class="c-faculty-avatar">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </div>
+                  <div class="c-faculty-info">
+                    <span class="c-f-label">Faculty Instructor</span>
+                    <span class="c-f-name">{{ course.instructorName || 'Dr. Alex Taylor' }}</span>
+                  </div>
+                </div>
+
+                <!-- Capacity Metric Track -->
+                <div class="c-capacity-box">
+                  <div class="c-cap-header">
+                    <span class="c-cap-label">
+                      Enrollment: <strong>{{ course.enrollmentCount || 0 }} / {{ course.maxCapacity || 30 }}</strong>
+                    </span>
+                    <span
+                      class="c-cap-badge"
+                      [class.cap-full]="(course.enrollmentCount || 0) >= (course.maxCapacity || 30)"
+                      [class.cap-open]="(course.enrollmentCount || 0) < (course.maxCapacity || 30)"
+                    >
+                      {{ (course.enrollmentCount || 0) >= (course.maxCapacity || 30) ? 'Class Full' : ((course.maxCapacity || 30) - (course.enrollmentCount || 0)) + ' Seats Left' }}
+                    </span>
+                  </div>
+                  <div class="c-cap-track">
+                    <div
+                      class="c-cap-fill"
+                      [style.width.%]="Math.min(100, (((course.enrollmentCount || 0) / (course.maxCapacity || 30)) * 100))"
+                      [class.fill-danger]="(course.enrollmentCount || 0) >= (course.maxCapacity || 30)"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card Actions Bottom Bar -->
+              <div class="c-card-footer">
+                <button (click)="openCoursePreview(course)" class="btn-c-preview" title="Preview 16-Week Syllabus">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                  </svg>
+                  <span>Syllabus</span>
+                </button>
+
+                <div class="c-footer-right-btns">
+                  <a [routerLink]="['/courses', course.id]" class="btn-c-inspect" title="Inspect complete curriculum">
+                    <span>Inspect</span>
+                  </a>
+
+                  @if (isEnrolledInCourse(course.id)) {
+                    <span class="badge-c-enrolled">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Enrolled</span>
+                    </span>
+                  } @else if (isPendingInCourse(course.id)) {
+                    <span class="badge-c-pending">
+                      <span>Pending</span>
+                    </span>
+                  } @else {
+                    <button
+                      (click)="handleEnroll(course)"
+                      [disabled]="(course.enrollmentCount || 0) >= (course.maxCapacity || 30)"
+                      class="btn-c-enroll"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      <span>{{ (course.enrollmentCount || 0) >= (course.maxCapacity || 30) ? 'Full' : 'Enroll Now' }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <div class="catalog-empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <h3>No Course Offerings Found</h3>
+              <p>No available courses match your filter criteria. Try clearing search filters.</p>
+              <button (click)="catalogDepartmentFilter.set('all'); catalogSearchQuery.set('')" class="btn-clear-filters">
+                Reset Filters
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- =========================================================================
+       POPUP 1: INSTITUTIONAL TRANSCRIPT REGISTRY (WITH STUDENT SELECTION STEP)
+       ========================================================================= -->
+  @if (showTranscriptModal()) {
+    <div class="modal-backdrop" (click)="closeTranscriptModal()">
+      <div class="transcript-modal-card" (click)="$event.stopPropagation()">
+        
+        <!-- STEP A: ADMIN STUDENT SELECTOR -->
+        @if (isAdmin() && transcriptStep() === 'select') {
+          <div class="transcript-header-bar">
+            <div class="institution-brand">
+              <div class="transcript-logo">TMS</div>
+              <div>
+                <h2>Institutional Transcript Registry • Student Selection</h2>
+                <span class="official-seal">Select an enrolled student to view and verify their official academic transcript</span>
+              </div>
+            </div>
+            <button (click)="closeTranscriptModal()" class="btn-close-modal">✕</button>
+          </div>
+
+          <div class="student-picker-wrapper">
+            <div class="picker-search-bar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                type="text"
+                placeholder="Search students by name, email, or student ID..."
+                [ngModel]="transcriptStudentSearch()"
+                (ngModelChange)="transcriptStudentSearch.set($event)"
+                class="picker-search-input"
+              />
+            </div>
+
+            <div class="students-picker-grid">
+              @for (student of enrolledStudents(); track student.id) {
+                <div class="student-select-card" (click)="selectStudentForTranscript(student)">
+                  <div class="student-avatar-badge">
+                    {{ student.name.slice(0, 2).toUpperCase() }}
+                  </div>
+                  <div class="student-info-col">
+                    <strong class="student-card-name">{{ student.name }}</strong>
+                    <span class="student-card-email">{{ student.email }} (ID: #{{ student.id }})</span>
+                    <div class="student-card-stats">
+                      <span class="pill-mini">{{ student.coursesCount }} Enrolled Courses</span>
+                      <span class="pill-mini pill-gpa">GPA: {{ student.gpa }}</span>
+                      <span class="pill-mini pill-avg">Avg: {{ student.avgScore }}%</span>
+                    </div>
+                  </div>
+                  <div class="student-card-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </div>
+                </div>
+              } @empty {
+                <div class="empty-picker-box">
+                  <p>No students found matching "{{ transcriptStudentSearch() }}".</p>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="transcript-footer">
+            <div class="signature-line">
+              <span class="sig-label">Registrar Directory Access:</span>
+              <span class="sig-code">AUTHORIZED ADMIN CONSOLE</span>
+            </div>
+            <button (click)="closeTranscriptModal()" class="btn-cancel-modal">Cancel</button>
+          </div>
+        }
+
+        <!-- STEP B: INDIVIDUAL OFFICIAL TRANSCRIPT VIEW -->
+        @if (!isAdmin() || transcriptStep() === 'view') {
+          <div class="transcript-header-bar">
+            <div class="institution-brand">
+              <div class="transcript-logo">TMS</div>
+              <div>
+                <h2>Official Academic Performance Transcript</h2>
+                <span class="official-seal">Official Record of Academic Performance • Office of the Registrar</span>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              @if (isAdmin()) {
+                <button (click)="backToStudentSelector()" class="btn-back-selector">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                  <span>Choose Another Student</span>
+                </button>
+              }
+              <button (click)="closeTranscriptModal()" class="btn-close-modal">✕</button>
+            </div>
+          </div>
+
+          <div class="transcript-student-details">
+            <div class="detail-col">
+              <span class="d-label">Student Name</span>
+              <strong class="d-val">{{ transcriptStudentInfo().name }}</strong>
+            </div>
+            <div class="detail-col">
+              <span class="d-label">Degree Program</span>
+              <strong class="d-val">B.S. Computer Information Systems & Software Engineering</strong>
+            </div>
+            <div class="detail-col">
+              <span class="d-label">Cumulative GPA</span>
+              <strong class="d-val highlight-gpa">{{ transcriptStudentInfo().gpa }} / 4.00</strong>
+            </div>
+            <div class="detail-col">
+              <span class="d-label">Completed Credits</span>
+              <strong class="d-val">{{ transcriptStudentInfo().credits }} Credits ({{ transcriptStudentInfo().status }})</strong>
+            </div>
+          </div>
+
+          <div class="transcript-table-wrapper">
+            <table class="transcript-table">
+              <thead>
+                <tr>
+                  <th>Course Name</th>
+                  <th>Academic Term</th>
+                  <th>Credits</th>
+                  <th>Status</th>
+                  <th>Final Grade</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of transcriptEnrollments(); track e.id) {
+                  <tr>
+                    <td>
+                      <strong>{{ e.courseName }}</strong>
+                    </td>
+                    <td>Fall 2026 Term</td>
+                    <td>3.0</td>
+                    <td>
+                      <span class="t-badge" [class]="'t-' + e.status.toLowerCase()">{{ e.status }}</span>
+                    </td>
+                    <td>
+                      @if (e.grade !== undefined && e.grade !== null) {
+                        <strong>{{ e.grade }}% ({{ e.letterGrade || 'A' }})</strong>
+                      } @else {
+                        <em>In Progress</em>
+                      }
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" style="text-align: center; padding: 24px; color: #64748b;">
+                      No enrollment records found for this student.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="transcript-footer">
+            <div class="signature-line">
+              <span class="sig-label">Registrar Office Verification Code:</span>
+              <span class="sig-code">TMS-SEC-{{ transcriptStudentInfo().name.slice(0, 3).toUpperCase() }}-2026-VERIFIED</span>
+            </div>
+            <div class="transcript-modal-actions">
+              <button (click)="printTranscript()" class="btn-print-transcript">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                  <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                <span>Download / Print Transcript</span>
+              </button>
+              <button (click)="closeTranscriptModal()" class="btn-cancel-modal">Close</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       POPUP 2: ANALYTICS BREAKDOWN MODAL POPUP
+       ========================================================================= -->
+  @if (showAnalyticsModal()) {
+    <div class="modal-backdrop" (click)="closeAnalyticsModal()">
+      <div class="analytics-popup-card" (click)="$event.stopPropagation()">
+        <div class="popup-header">
+          <div class="popup-title-box">
+            <div class="popup-icon-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+            </div>
+            <div>
+              <h2>Institutional Analytics Breakdown</h2>
+              <span class="popup-sub">Real-time academic evaluation metrics, cohort letter grade distribution, and completion rates</span>
+            </div>
+          </div>
+          <button (click)="closeAnalyticsModal()" class="btn-close-modal">✕</button>
+        </div>
+
+        <div class="analytics-popup-content">
+          <!-- Key Metric Gauges -->
+          <div class="analytics-summary-grid">
+            <div class="summary-box">
+              <span class="summary-label">Academy Pass Rate</span>
+              <div class="summary-value">{{ gradeStats().passRate }}%</div>
+              <span class="summary-sub">{{ gradeStats().certifiedCount }} / {{ gradeStats().totalGraded }} Students Passing</span>
+            </div>
+            <div class="summary-box">
+              <span class="summary-label">Average Cohort Score</span>
+              <div class="summary-value">{{ gradeStats().avgScore }}%</div>
+              <span class="summary-sub">Letter Grade Equivalent: B+</span>
+            </div>
+            <div class="summary-box">
+              <span class="summary-label">Total Graded Submissions</span>
+              <div class="summary-value">{{ gradeStats().totalGraded }}</div>
+              <span class="summary-sub">Across All Academy Courses</span>
+            </div>
+          </div>
+
+          <!-- Deep-dive Grade Bars -->
+          <h3 class="breakdown-subtitle">Cohort Grade Distribution Breakdown</h3>
+          <div class="grade-distribution-grid">
+            <div class="dist-card grade-a-card">
+              <div class="dist-top">
+                <span class="grade-letter-badge badge-a">Grade A</span>
+                <span class="dist-score-range">90% – 100%</span>
+              </div>
+              <div class="dist-count">{{ gradeStats().a.count }} Students</div>
+              <div class="dist-bar-track">
+                <div class="dist-bar-fill bar-a" [style.width.%]="gradeStats().a.pct"></div>
+              </div>
+              <span class="dist-pct">{{ gradeStats().a.pct }}% of graded cohort</span>
+            </div>
+
+            <div class="dist-card grade-b-card">
+              <div class="dist-top">
+                <span class="grade-letter-badge badge-b">Grade B</span>
+                <span class="dist-score-range">80% – 89%</span>
+              </div>
+              <div class="dist-count">{{ gradeStats().b.count }} Students</div>
+              <div class="dist-bar-track">
+                <div class="dist-bar-fill bar-b" [style.width.%]="gradeStats().b.pct"></div>
+              </div>
+              <span class="dist-pct">{{ gradeStats().b.pct }}% of graded cohort</span>
+            </div>
+
+            <div class="dist-card grade-c-card">
+              <div class="dist-top">
+                <span class="grade-letter-badge badge-c">Grade C</span>
+                <span class="dist-score-range">70% – 79%</span>
+              </div>
+              <div class="dist-count">{{ gradeStats().c.count }} Students</div>
+              <div class="dist-bar-track">
+                <div class="dist-bar-fill bar-c" [style.width.%]="gradeStats().c.pct"></div>
+              </div>
+              <span class="dist-pct">{{ gradeStats().c.pct }}% of graded cohort</span>
+            </div>
+
+            <div class="dist-card grade-d-card">
+              <div class="dist-top">
+                <span class="grade-letter-badge badge-d">Grade D / F</span>
+                <span class="dist-score-range">&lt; 70%</span>
+              </div>
+              <div class="dist-count">{{ gradeStats().d.count + gradeStats().f.count }} Students</div>
+              <div class="dist-bar-track">
+                <div class="dist-bar-fill bar-d" [style.width.%]="gradeStats().d.pct + gradeStats().f.pct"></div>
+              </div>
+              <span class="dist-pct">{{ gradeStats().d.pct + gradeStats().f.pct }}% remediation required</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="popup-footer">
+          <button (click)="closeAnalyticsModal()" class="btn-primary-modal">Done</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       POPUP 3: REGISTRY TABLE MODAL POPUP
+       ========================================================================= -->
+  @if (showRegistryModal()) {
+    <div class="modal-backdrop" (click)="closeRegistryModal()">
+      <div class="registry-popup-card" (click)="$event.stopPropagation()">
+        <div class="popup-header">
+          <div class="popup-title-box">
+            <div class="popup-icon-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18"></path>
+              </svg>
+            </div>
+            <div>
+              <h2>Academy Enrollment Registry Table</h2>
+              <span class="popup-sub">Institutional tabular registry with filtering, transcript inspection, and CSV export</span>
+            </div>
+          </div>
+          <button (click)="closeRegistryModal()" class="btn-close-modal">✕</button>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="registry-toolbar">
+          <div class="reg-search-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search registry by student name, ID, or course..."
+              [ngModel]="registrySearchQuery()"
+              (ngModelChange)="registrySearchQuery.set($event)"
+              class="reg-search-input"
+            />
+          </div>
+
+          <div class="reg-filter-pills">
+            <button
+              class="reg-pill"
+              [class.active-pill]="registryStatusFilter() === 'all'"
+              (click)="registryStatusFilter.set('all')"
+            >
+              All ({{ enrollmentStore.entities().length }})
+            </button>
+            <button
+              class="reg-pill"
+              [class.active-pill]="registryStatusFilter() === 'Approved'"
+              (click)="registryStatusFilter.set('Approved')"
+            >
+              Approved
+            </button>
+            <button
+              class="reg-pill"
+              [class.active-pill]="registryStatusFilter() === 'Pending'"
+              (click)="registryStatusFilter.set('Pending')"
+            >
+              Pending
+            </button>
+            <button
+              class="reg-pill"
+              [class.active-pill]="registryStatusFilter() === 'Graded'"
+              (click)="registryStatusFilter.set('Graded')"
+            >
+              Graded
+            </button>
+          </div>
+
+          <button (click)="exportRegistryCsv()" class="btn-export-csv">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Export CSV</span>
+          </button>
+        </div>
+
+        <!-- Tabular Grid -->
+        <div class="registry-table-scroll">
+          <table class="reg-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Student Name</th>
+                <th>Course Name</th>
+                <th>Term</th>
+                <th>Status</th>
+                <th>Grade</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (e of registryRecords(); track e.id) {
+                <tr>
+                  <td><strong>#{{ e.id }}</strong></td>
+                  <td>
+                    <strong class="student-name-link" (click)="openTranscriptModal(e.studentName); closeRegistryModal()">
+                      {{ e.studentName }}
+                    </strong>
+                    <div style="font-size: 0.75rem; color: #94a3b8;">ID: #{{ e.studentId }}</div>
+                  </td>
+                  <td>{{ e.courseName }}</td>
+                  <td>Fall 2026</td>
+                  <td>
+                    <span class="t-badge" [class]="'t-' + e.status.toLowerCase()">{{ e.status }}</span>
+                  </td>
+                  <td>
+                    @if (e.grade !== undefined && e.grade !== null) {
+                      <strong style="color: #10b981;">{{ e.grade }}% ({{ e.letterGrade || 'A' }})</strong>
+                    } @else {
+                      <span style="color: #94a3b8; font-style: italic;">In Progress</span>
+                    }
+                  </td>
+                  <td>
+                    <div style="display: flex; gap: 6px;">
+                      <button
+                        (click)="openTranscriptModal(e.studentName); closeRegistryModal()"
+                        class="btn-table-action"
+                        title="View student transcript"
+                      >
+                        Transcript
+                      </button>
+                      @if (e.grade !== undefined && e.grade !== null) {
+                        <button
+                          (click)="viewCertificate(e.courseName, e.studentName); closeRegistryModal()"
+                          class="btn-table-action btn-table-cert"
+                          title="View certificate"
+                        >
+                          Cert
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 24px; color: #64748b;">
+                    No records found matching your filter criteria.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="popup-footer">
+          <span class="reg-count-note">Showing {{ registryRecords().length }} entries</span>
+          <button (click)="closeRegistryModal()" class="btn-primary-modal">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       POPUP 4: FACULTY WORKLOAD MATRIX MODAL (ADMIN ONLY)
+       ========================================================================= -->
+  @if (showFacultyModal()) {
+    <div class="modal-backdrop" (click)="closeFacultyWorkloadModal()">
+      <div class="faculty-modal-card" (click)="$event.stopPropagation()">
+        <div class="popup-header">
+          <div class="popup-title-box">
+            <div class="popup-icon-circle">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div>
+              <h2>Faculty Assignment & Workload Allocation Matrix</h2>
+              <span class="popup-sub">Institutional view of teaching faculties, assigned cohort sections, and enrollment volume</span>
+            </div>
+          </div>
+          <button (click)="closeFacultyWorkloadModal()" class="btn-close-modal">✕</button>
+        </div>
+
+        <div class="faculty-grid-scroll">
+          <div class="faculty-cards-grid">
+            @for (f of facultyWorkload(); track f.id) {
+              <div class="faculty-card">
+                <div class="fac-top">
+                  <div class="fac-avatar">{{ f.name.slice(0, 2).toUpperCase() }}</div>
+                  <div>
+                    <strong class="fac-name">{{ f.name }}</strong>
+                    <span class="fac-role">{{ f.role }} • {{ f.email }}</span>
+                  </div>
+                </div>
+
+                <div class="fac-stats-row">
+                  <div class="fac-stat">
+                    <span>Assigned Modules:</span>
+                    <strong>{{ f.assignedCoursesCount }}</strong>
+                  </div>
+                  <div class="fac-stat">
+                    <span>Enrolled Students:</span>
+                    <strong>{{ f.totalStudents }}</strong>
+                  </div>
+                </div>
+
+                <div class="fac-assigned-list">
+                  <span class="fac-list-title">Assigned Course Sections:</span>
+                  @for (c of f.assignedCourses; track c.id) {
+                    <div class="fac-course-chip">
+                      <strong>{{ c.code }}</strong> — {{ c.title }} ({{ c.enrollmentCount }}/{{ c.maxCapacity }})
+                    </div>
+                  } @empty {
+                    <span style="font-size: 0.8rem; color: #94a3b8; font-style: italic;">No active courses assigned.</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="popup-footer">
+          <a routerLink="/admin/courses" (click)="closeFacultyWorkloadModal()" class="btn-primary-modal">
+            Manage Course Allocations
+          </a>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       POPUP 5: STUDENT QUICK SYLLABUS PREVIEW MODAL
+       ========================================================================= -->
+  @if (previewCourseModal(); as prev) {
+    <div class="modal-backdrop" (click)="closeCoursePreview()">
+      <div class="modal-card modal-large" (click)="$event.stopPropagation()">
+        <div class="popup-header">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="code-pill">{{ prev.course.code }}</div>
+            <div>
+              <h2>{{ prev.course.title }}</h2>
+              <span class="modal-sub">{{ prev.curriculum.department }} • {{ prev.curriculum.credits }} Credits</span>
+            </div>
+          </div>
+          <button (click)="closeCoursePreview()" class="btn-close-modal">✕</button>
+        </div>
+
+        <div class="modal-scroll-body">
+          <p class="preview-description">{{ prev.curriculum.description }}</p>
+
+          <div class="preview-section">
+            <span class="preview-label">Core Learning Outcomes:</span>
+            <ul class="preview-outcomes-list">
+              @for (item of prev.curriculum.learningOutcomes; track item) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          </div>
+
+          <div class="preview-section">
+            <span class="preview-label">16-Week Syllabus Milestones:</span>
+            <div class="preview-syllabus-grid">
+              @for (mod of prev.curriculum.modules; track mod.week) {
+                <div class="preview-mod-card">
+                  <span class="preview-mod-week">{{ mod.week }}</span>
+                  <strong>{{ mod.title }}</strong>
+                  <p>{{ mod.focus }}</p>
+                  <span class="preview-mod-lab">Lab: {{ mod.lab }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <a [routerLink]="['/courses', prev.course.id]" (click)="closeCoursePreview()" class="btn-view-details">
+            Open Full Course Page
+          </a>
+          <button (click)="handleEnroll(prev.course); closeCoursePreview()" class="btn-primary-action">
+            Enroll in this Course
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       POPUP 6: OFFICIAL CERTIFICATE MODAL
+       ========================================================================= -->
+  @if (activeCertificate(); as cert) {
+    <div class="modal-backdrop" (click)="closeCertificate()">
+      <div class="cert-modal-card" (click)="$event.stopPropagation()">
+        <!-- High-End Gold Border Frame -->
+        <div class="cert-frame" id="printable-certificate">
+          <div class="cert-corner corner-tl"></div>
+          <div class="cert-corner corner-tr"></div>
+          <div class="cert-corner corner-bl"></div>
+          <div class="cert-corner corner-br"></div>
+
+          <div class="cert-top-emblem">
+            <div class="gold-seal-badge">
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 1L15.39 6.26L21.5 7.27L17.25 11.97L18.18 18.02L12 15.35L5.82 18.02L6.75 11.97L2.5 7.27L8.61 6.26L12 1Z"/>
+              </svg>
+            </div>
+          </div>
+
+          <span class="cert-org-name">TMS ACADEMIC INSTITUTION OF HIGHER EDUCATION</span>
+          <h2 class="cert-title">Certificate of Academic Achievement</h2>
+          <p class="cert-body-text">This official document certifies that</p>
+          <h3 class="cert-recipient">{{ cert.student }}</h3>
+          <p class="cert-body-text">has successfully fulfilled all semester requirements, laboratory milestones, and examinations for</p>
+          <h4 class="cert-course-name">{{ cert.course }}</h4>
+
+          <div class="cert-signatures-grid">
+            <div class="sig-box">
+              <div class="sig-script">Dr. Alex Taylor</div>
+              <div class="sig-line"></div>
+              <span class="sig-title">Faculty Course Director</span>
+            </div>
+            <div class="sig-box">
+              <div class="sig-stamp">VERIFIED ACCREDITED</div>
+              <div class="sig-line"></div>
+              <span class="sig-title">Office of the Registrar</span>
+            </div>
+          </div>
+
+          <div class="cert-footer">
+            <div>Issue Date: <strong>{{ cert.date }}</strong></div>
+            <div>Serial: <strong>{{ cert.code }}</strong></div>
+          </div>
+        </div>
+
+        <div class="cert-modal-buttons">
+          <button (click)="downloadCertificate()" class="btn-download-cert">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Download / Print Certificate (PDF)</span>
+          </button>
+          <button (click)="closeCertificate()" class="btn-close-cert">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

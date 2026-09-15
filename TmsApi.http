@@ -1,0 +1,34 @@
+@TmsApi_HostAddress = http://localhost:5278
+
+GET {{TmsApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+GET http://localhost:5278/api/enrollments
+
+###
+POST http://localhost:5278/api/enrollments
+
+###
+GET http://localhost:5278/api/enrollments/d170a730
+
+###
+DELETE http://localhost:5278/api/enrollments/d170a730
+
+###
+GET http://localhost:5278/api/enrollments
+
+###
+curl http://localhost:5278/api/error
+
+###
+GET http://localhost:5278/api/v1/courses
+
+###
+GET http://localhost:5278/api/v2/courses
+
+###
+GET  http://localhost:5278/api/v1/courses
+
+###
+GET  https://localhost:5278/api/v2/courses

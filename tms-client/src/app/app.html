@@ -1,0 +1,192 @@
+<header class="app-header">
+  <div class="header-container">
+    <!-- Brand Logo -->
+    <a routerLink="/" class="brand-link">
+      <div class="logo-mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="brand-title">TMS <span class="brand-accent">Portal</span></span>
+    </a>
+
+    <!-- Navigation Links tailored strictly by Role -->
+    <nav class="nav-links">
+      @if (auth.isAuthenticated()) {
+        <!-- Administrator Navigation -->
+        @if (auth.hasRole('Admin')) {
+          <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: -2px;">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Academy Dashboard</span>
+          </a>
+          <a routerLink="/enrollments" routerLinkActive="active" class="nav-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: -2px;">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <span>Enrollment Records</span>
+          </a>
+          <a routerLink="/courses" routerLinkActive="active" class="nav-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: -2px;">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>Course Catalog</span>
+          </a>
+          <a routerLink="/student" routerLinkActive="active" class="nav-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: -2px;">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+            </svg>
+            <span>Student Hub & Grades</span>
+          </a>
+          <a routerLink="/admin/users" routerLinkActive="active" class="nav-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: -2px;">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+            <span>User Approvals</span>
+          </a>
+        }
+
+        <!-- Instructor Navigation -->
+        @if (auth.hasRole('Instructor') && !auth.hasRole('Admin')) {
+          <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: -2px;">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+          <a routerLink="/enrollments" routerLinkActive="active" class="nav-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: -2px;">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <span>Enrollments</span>
+          </a>
+          <a routerLink="/grade-submission" routerLinkActive="active" class="nav-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: -2px;">
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span>Grading</span>
+          </a>
+          <a routerLink="/courses" routerLinkActive="active" class="nav-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: -2px;">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>Course Catalog</span>
+          </a>
+        }
+
+        <!-- Student Navigation -->
+        @if (auth.hasRole('Student') && !auth.hasRole('Admin') && !auth.hasRole('Instructor')) {
+          <a routerLink="/student" routerLinkActive="active" class="nav-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: -2px;">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+            </svg>
+            <span>Student Hub</span>
+          </a>
+          <a routerLink="/courses" routerLinkActive="active" class="nav-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: -2px;">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>Available Courses</span>
+          </a>
+          <a routerLink="/enroll" routerLinkActive="active" class="nav-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px; vertical-align: -2px;">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Enroll</span>
+          </a>
+        }
+      }
+    </nav>
+
+    <!-- Header Actions (Live Status, Theme Toggle & Auth) -->
+    <div class="header-actions">
+      <!-- Live SignalR Hub Status Badge -->
+      @if (auth.isAuthenticated()) {
+        <div
+          class="live-status-pill"
+          [matTooltip]="'Real-Time SignalR Engine: ' + liveSync.connectionState()"
+        >
+          <span class="live-dot" [class]="'dot-' + liveSync.connectionState()"></span>
+          <span class="live-label">
+            {{ liveSync.connectionState() === 'connected' ? 'Live Sync' : (liveSync.connectionState() === 'reconnecting' ? 'Reconnecting' : 'Sync Active') }}
+          </span>
+        </div>
+      }
+
+      <!-- Dark / Light Mode Toggle Button -->
+      <button
+        class="theme-toggle-btn"
+        (click)="themeService.toggleTheme()"
+        [attr.aria-label]="themeService.isDark() ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+        [matTooltip]="themeService.isDark() ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+      >
+        @if (themeService.isDark()) {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        } @else {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        }
+      </button>
+
+      @if (auth.isAuthenticated()) {
+        <!-- User Badge -->
+        <div class="user-pill">
+          <div class="user-avatar">
+            {{ (auth.currentUser()?.displayName || 'U')[0].toUpperCase() }}
+          </div>
+          <div class="user-meta">
+            <span class="user-name">{{ auth.currentUser()?.displayName }}</span>
+            <span class="user-role">{{ auth.currentUser()?.role }}</span>
+          </div>
+        </div>
+
+        <!-- Logout Button -->
+        <button (click)="logout()" class="btn-logout">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Logout</span>
+        </button>
+      } @else {
+        <a routerLink="/login" class="btn-signin">
+          Sign In
+        </a>
+      }
+    </div>
+  </div>
+</header>
+
+<main class="content-area">
+  <router-outlet />
+</main>

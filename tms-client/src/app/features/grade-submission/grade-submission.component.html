@@ -1,0 +1,157 @@
+<div class="grade-submission-wrapper">
+  <mat-card class="grade-station-card">
+    <div class="card-header-styled">
+      <div class="header-icon-box">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+      </div>
+      <div>
+        <h1 class="header-title">Final Grade Evaluation Station</h1>
+        <p class="header-subtitle">Record and publish official student semester scores for your approved course enrollments.</p>
+      </div>
+    </div>
+
+    <mat-card-content class="station-content">
+      <!-- Quick Selector Panel (Filtered to Approved Students in Instructor's Cohort) -->
+      @if (approvedStudents().length > 0) {
+        <div class="quick-selector-panel">
+          <div class="panel-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span>Select from Approved Enrolled Students ({{ approvedStudents().length }} confirmed):</span>
+          </div>
+          <mat-form-field appearance="outline" class="select-field">
+            <mat-label>Choose Approved Student & Course</mat-label>
+            <mat-select (selectionChange)="onSelectEnrollment($event.value)">
+              @for (enrollment of approvedStudents(); track enrollment.id) {
+                <mat-option [value]="enrollment.id">
+                  {{ enrollment.studentName }} (ID: #{{ enrollment.studentId }}) — {{ enrollment.courseName }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      } @else {
+        <div class="empty-cohort-alert">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div>
+            <strong>No approved student enrollments found in your assigned courses.</strong>
+            <p>Students with Pending enrollment requests must first be officially approved in the Enrollments page before grades can be recorded.</p>
+          </div>
+        </div>
+      }
+
+      <!-- Pending Attention Banner if instructor has pending requests -->
+      @if (pendingStudents().length > 0) {
+        <div class="pending-notice-banner">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <div class="pending-notice-text">
+            <span>You have <strong>{{ pendingStudents().length }} pending request(s)</strong> awaiting approval.</span>
+            <a routerLink="/enrollments" class="notice-link">Go to Enrollments Records →</a>
+          </div>
+        </div>
+      }
+
+      <form [formGroup]="gradeForm" (ngSubmit)="onSubmit()" class="grade-form">
+        <div class="inputs-row">
+          <!-- Student ID -->
+          <mat-form-field appearance="outline" class="input-half">
+            <mat-label>Student ID Number</mat-label>
+            <input matInput type="number" formControlName="studentId" placeholder="e.g. 1" />
+            @if (gradeForm.controls.studentId.hasError('required')) {
+              <mat-error>Student ID is required</mat-error>
+            }
+            @if (gradeForm.controls.studentId.hasError('min')) {
+              <mat-error>Minimum ID is 1</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Course ID -->
+          <mat-form-field appearance="outline" class="input-half">
+            <mat-label>Course ID Number</mat-label>
+            <input matInput type="number" formControlName="courseId" placeholder="e.g. 1" />
+            @if (gradeForm.controls.courseId.hasError('required')) {
+              <mat-error>Course ID is required</mat-error>
+            }
+            @if (gradeForm.controls.courseId.hasError('min')) {
+              <mat-error>Minimum ID is 1</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Score Input -->
+        <mat-form-field appearance="outline" class="input-full">
+          <mat-label>Final Score (0 – 100%)</mat-label>
+          <input matInput type="number" formControlName="score" placeholder="e.g. 88" />
+          <mat-hint class="gpa-hint">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 3px;">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>Security verified: Grades can only be submitted for officially Approved student enrollments.</span>
+          </mat-hint>
+          @if (gradeForm.controls.score.hasError('required')) {
+            <mat-error>Score is required</mat-error>
+          }
+          @if (gradeForm.controls.score.hasError('min') || gradeForm.controls.score.hasError('max')) {
+            <mat-error>Score must be between 0 and 100</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Status Message Alert -->
+        @if (submissionStatus()) {
+          <div
+            class="status-banner"
+            [class.status-success]="isSuccess()"
+            [class.status-error]="!isSuccess()"
+          >
+            <div class="banner-icon">
+              @if (isSuccess()) {
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              } @else {
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+              }
+            </div>
+            <span>{{ submissionStatus() }}</span>
+          </div>
+        }
+
+        <!-- Submit Button -->
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="gradeForm.invalid || isSubmitting()"
+          class="btn-submit-grade"
+        >
+          @if (isSubmitting()) {
+            <mat-spinner diameter="20" strokeWidth="2.5"></mat-spinner>
+            <span>Persisting to Database...</span>
+          } @else {
+            <span>Publish Final Grade</span>
+          }
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

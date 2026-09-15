@@ -1,0 +1,473 @@
+<div class="course-detail-container">
+  <!-- Navigation Breadcrumb / Back Link -->
+  <div class="top-nav-bar">
+    <a routerLink="/courses" class="btn-back">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      <span>Back to Course Catalog</span>
+    </a>
+
+    <div style="display: flex; gap: 10px; align-items: center;">
+      @if (courseResource.value(); as course) {
+        @if (canEditCurriculum(course)) {
+          <button (click)="openCurriculumEditor(course)" class="btn-edit-curriculum-top">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+            <span>Edit Description & Syllabus</span>
+          </button>
+        }
+      }
+
+      @if (auth.hasRole('Instructor') || auth.hasRole('Admin')) {
+        <a routerLink="/dashboard" class="btn-dashboard-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Command Center</span>
+        </a>
+      }
+    </div>
+  </div>
+
+  @if (courseResource.isLoading()) {
+    <div class="loading-state-card">
+      <mat-spinner diameter="44" strokeWidth="3"></mat-spinner>
+      <p class="loading-text">Retrieving comprehensive module syllabus and academic records...</p>
+    </div>
+  } @else if (courseResource.error()) {
+    <div class="error-state-card">
+      <div class="error-icon-box">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <h2>Course Record Not Found</h2>
+      <p>The requested course module could not be retrieved from the academic database. Please verify the ID or return to the catalog.</p>
+      <a routerLink="/courses" class="btn-retry">Return to Courses</a>
+    </div>
+  } @else if (courseResource.value(); as course) {
+    <!-- Hero Course Header -->
+    <div class="course-hero-card">
+      <div class="hero-top-row">
+        <div class="course-code-badge">{{ course.code }}</div>
+        <div class="hero-status-pills">
+          @if (course.enrollmentCount >= course.maxCapacity) {
+            <span class="status-pill pill-full">
+              <span class="status-dot dot-full"></span>
+              Cohort Full
+            </span>
+          } @else {
+            <span class="status-pill pill-open">
+              <span class="status-dot dot-open"></span>
+              Admissions Open ({{ course.maxCapacity - course.enrollmentCount }} Seats Left)
+            </span>
+          }
+          <span class="credits-pill">{{ curriculum().credits }} Academic Credits</span>
+        </div>
+      </div>
+
+      <h1 class="course-title">{{ course.title }}</h1>
+      <p class="hero-summary">{{ curriculum().summary }}</p>
+
+      <div class="hero-meta-grid">
+        <div class="meta-item">
+          <div class="meta-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div>
+            <span class="meta-label">Assigned Faculty Instructor</span>
+            <strong class="meta-value">{{ course.instructorName || 'Dr. Alex Taylor' }}</strong>
+          </div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z"></path>
+              <path d="M2 17L12 22L22 17"></path>
+              <path d="M2 12L12 17L22 12"></path>
+            </svg>
+          </div>
+          <div>
+            <span class="meta-label">Academic Department</span>
+            <strong class="meta-value">{{ curriculum().department }}</strong>
+          </div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <div>
+            <span class="meta-label">Academic Term</span>
+            <strong class="meta-value">Institutional Term Fall 2026</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Layout (Grid) -->
+    <div class="detail-grid">
+      <!-- Left Column: Syllabus, Learning Outcomes, Description -->
+      <div class="detail-left">
+        <!-- Module Description & Overview -->
+        <div class="section-card">
+          <div class="card-title-row">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+            <h2>Academic Course Description</h2>
+          </div>
+          <p class="description-text">
+            {{ curriculum().description }}
+          </p>
+
+          <div class="learning-outcomes">
+            <h3>Key Learning Outcomes & Core Competencies:</h3>
+            <ul class="outcomes-list">
+              @for (outcome of curriculum().learningOutcomes; track outcome) {
+                <li>{{ outcome }}</li>
+              }
+            </ul>
+          </div>
+        </div>
+
+        <!-- Course Syllabus Breakdown -->
+        <div class="section-card">
+          <div class="card-title-row">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            <h2>Semester Syllabus Schedule</h2>
+          </div>
+          <div class="syllabus-timeline">
+            @for (mod of curriculum().modules; track mod.week) {
+              <div class="timeline-item">
+                <div class="timeline-badge">{{ mod.week }}</div>
+                <div class="timeline-content">
+                  <strong>{{ mod.title }}</strong>
+                  <p>{{ mod.focus }}</p>
+                  <span class="lab-tag">
+                    <strong>Lab Focus:</strong> {{ mod.lab }}
+                  </span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Industry Skills & Career Pathways -->
+        <div class="section-card skills-card">
+          <div class="card-title-row">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <h2>Industry Skills & Career Pathways</h2>
+          </div>
+
+          <div class="skills-wrapper">
+            <div class="skills-chips">
+              @for (skill of curriculum().industrySkills; track skill) {
+                <span class="skill-pill">{{ skill }}</span>
+              }
+            </div>
+            <div class="career-paths">
+              <span class="career-label">Target Career Roles:</span>
+              <div class="career-tags">
+                @for (career of curriculum().careerOpportunities; track career) {
+                  <span class="career-pill">{{ career }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Capacity Status & Enrollment Actions -->
+      <div class="detail-right">
+        <!-- Seat Capacity Card -->
+        <div class="section-card capacity-status-card">
+          <div class="card-title-row">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <h2>Capacity Diagnostics</h2>
+          </div>
+
+          <div class="capacity-stat-box">
+            <div class="stat-large">
+              <span class="stat-num">{{ course.enrollmentCount }}</span>
+              <span class="stat-divider">/</span>
+              <span class="stat-max">{{ course.maxCapacity }}</span>
+            </div>
+            <span class="stat-desc">Enrolled Students</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="progress-container">
+            <div class="progress-bar-track">
+              <div
+                class="progress-bar-fill"
+                [style.width.%]="getCapacityPercentage(course)"
+                [class.progress-full]="course.enrollmentCount >= course.maxCapacity"
+              ></div>
+            </div>
+            <div class="progress-labels">
+              <span>{{ getCapacityPercentage(course) }}% Occupied</span>
+              <span>{{ course.maxCapacity - course.enrollmentCount }} Seats Left</span>
+            </div>
+          </div>
+
+          <!-- Action Buttons based on User Role -->
+          <div class="action-buttons-group">
+            @if (canEditCurriculum(course)) {
+              <button (click)="openCurriculumEditor(course)" class="btn-edit-course-desc">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                <span>Edit Course Description & Syllabus</span>
+              </button>
+            }
+
+            @if (auth.hasRole('Student')) {
+              @if (course.enrollmentCount >= course.maxCapacity) {
+                <button disabled class="btn-enroll-disabled">
+                  <span>Class Full (Waitlist Closed)</span>
+                </button>
+              } @else {
+                <a
+                  [routerLink]="['/enroll']"
+                  [queryParams]="{ courseId: course.id }"
+                  class="btn-enroll-now"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Enroll in this Course</span>
+                </a>
+              }
+            }
+
+            @if (auth.hasRole('Admin')) {
+              <a routerLink="/enrollments" class="btn-grade-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                </svg>
+                <span>View All Academy Enrollments</span>
+              </a>
+            } @else if (auth.hasRole('Instructor')) {
+              <a routerLink="/enrollments" class="btn-manage-enrollments">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <span>View Cohort Enrollments</span>
+              </a>
+            }
+          </div>
+        </div>
+
+        <!-- Academic Info Card -->
+        <div class="section-card faculty-info-card">
+          <div class="card-title-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <h2>Prerequisites & Course Policy</h2>
+          </div>
+          <ul class="policy-list">
+            <li><strong>Prerequisites:</strong> {{ curriculum().prerequisites }}</li>
+            <li><strong>Attendance Policy:</strong> 85% attendance required for semester certification eligibility.</li>
+            <li><strong>Grading Weight:</strong> 30% assignments, 20% quizzes, 20% midterm exam, 30% capstone project.</li>
+            <li><strong>Security:</strong> All final evaluations cryptographically recorded in institutional audit log.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         ADMIN / INSTRUCTOR MODAL: EDIT COMPLETE COURSE CURRICULUM & DESCRIPTION
+         ========================================================================= -->
+    @if (isCurriculumModalOpen()) {
+      <div class="modal-backdrop" (click)="closeCurriculumEditor()">
+        <div class="curriculum-edit-modal-card" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div class="modal-icon-badge">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+              </div>
+              <div>
+                <h2>Edit Academic Curriculum & Description</h2>
+                <span class="modal-sub">Customize descriptions, learning outcomes, and syllabus schedule for {{ course.code }}</span>
+              </div>
+            </div>
+            <button (click)="closeCurriculumEditor()" class="btn-close-modal">✕</button>
+          </div>
+
+          <div class="modal-scroll-body">
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Academic Department</label>
+                <input
+                  type="text"
+                  [(ngModel)]="curriculumForm.department"
+                  placeholder="e.g. Department of Computer Science & Software Engineering"
+                  class="input-control"
+                />
+              </div>
+              <div class="form-group">
+                <label>Academic Credits</label>
+                <input
+                  type="number"
+                  [(ngModel)]="curriculumForm.credits"
+                  step="0.5"
+                  min="1"
+                  max="6"
+                  class="input-control"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Course Summary (Hero Header Catchphrase)</label>
+              <textarea
+                [(ngModel)]="curriculumForm.summary"
+                rows="2"
+                placeholder="Short 1-2 sentence executive summary of what this course offers..."
+                class="textarea-control"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Comprehensive Course Description</label>
+              <textarea
+                [(ngModel)]="curriculumForm.description"
+                rows="4"
+                placeholder="In-depth academic description of the course theory, lab expectations, and industrial relevance..."
+                class="textarea-control"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Prerequisites</label>
+              <input
+                type="text"
+                [(ngModel)]="curriculumForm.prerequisites"
+                placeholder="e.g. Introductory Programming in C# / C++ (CS-100) or equivalent."
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Key Learning Outcomes (One per line)</label>
+              <textarea
+                [(ngModel)]="learningOutcomesText"
+                rows="4"
+                placeholder="Design distributed systems...&#10;Deploy automated CI/CD pipelines...&#10;Master relational and NoSQL databases..."
+                class="textarea-control"
+              ></textarea>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Industry Skills (Comma separated)</label>
+                <input
+                  type="text"
+                  [(ngModel)]="industrySkillsText"
+                  placeholder="Terraform, Kubernetes, Docker, Angular, SignalR"
+                  class="input-control"
+                />
+              </div>
+              <div class="form-group">
+                <label>Target Career Opportunities (Comma separated)</label>
+                <input
+                  type="text"
+                  [(ngModel)]="careerOpportunitiesText"
+                  placeholder="Cloud Solutions Architect, DevOps Engineer, Full-Stack Developer"
+                  class="input-control"
+                />
+              </div>
+            </div>
+
+            <!-- 16-Week Syllabus Modules -->
+            <div class="syllabus-edit-section">
+              <h3>16-Week Syllabus Milestones & Lab Topics</h3>
+              <div class="modules-edit-grid">
+                @for (mod of curriculumForm.modules; track mod.week; let i = $index) {
+                  <div class="module-edit-box">
+                    <div class="module-edit-top">
+                      <span class="mod-week-pill">{{ mod.week }}</span>
+                      <input
+                        type="text"
+                        [(ngModel)]="mod.title"
+                        placeholder="Module Title"
+                        class="input-mod-title"
+                      />
+                    </div>
+                    <textarea
+                      [(ngModel)]="mod.focus"
+                      rows="2"
+                      placeholder="Core lecture topics and theoretical focus..."
+                      class="textarea-mod-focus"
+                    ></textarea>
+                    <input
+                      type="text"
+                      [(ngModel)]="mod.lab"
+                      placeholder="Lab Focus & Milestone Deliverable"
+                      class="input-mod-lab"
+                    />
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button (click)="closeCurriculumEditor()" class="btn-cancel">Cancel</button>
+            <button (click)="saveCurriculumChanges(course)" class="btn-save-curriculum">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span>Save Full Curriculum & Description</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

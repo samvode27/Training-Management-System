@@ -1,0 +1,58 @@
+# Compiled output
+dist/
+tmp/
+out-tsc/
+bazel-out/
+
+# Node dependenciesnode_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Angular cache & CLI
+.angular/
+.angular/cache
+
+# Environment & local config
+.env
+.env.local
+.env.*.local
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+# Testing & Coverage
+coverage/
+*.lcov
+.nyc_output
+
+# Miscellaneous & OS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Logs & Temporary files
+*.log
+*.pid
+*.seed
+*.tmp
+*.bak
+
+

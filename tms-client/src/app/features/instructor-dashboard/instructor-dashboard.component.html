@@ -1,0 +1,154 @@
+<div class="instructor-hub">
+  <!-- Header & KPI Section -->
+  <div class="hub-header">
+    <div>
+      <div class="instructor-welcome">
+        <span class="badge-role" [class.badge-admin]="auth.hasRole('Admin')">
+          @if (auth.hasRole('Admin')) {
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: -2px; margin-right: 4px;">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>Administrator Console</span>
+          } @else {
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>Faculty Instructor Portal</span>
+          }
+        </span>
+        @if (auth.currentUser(); as user) {
+          <span class="instructor-id-pill">Logged in as: <strong>{{ user.displayName }}</strong></span>
+        }
+      </div>
+
+      <h1 class="hub-title">
+        {{ auth.hasRole('Admin') ? 'Institutional Academy Command Center' : 'Instructor Command Center' }}
+      </h1>
+      <p class="hub-subtitle">
+        {{ auth.hasRole('Admin')
+            ? 'Institution-wide diagnostic overview, admissions pipeline, and faculty cohort metrics.'
+            : 'Real-time enrollment diagnostics, status breakdowns, and student performance for your courses.' }}
+      </p>
+    </div>
+    
+    <div class="header-actions">
+      <!-- Role-tailored action shortcuts -->
+      @if (auth.hasRole('Admin')) {
+        <a routerLink="/enrollments" class="btn-action-primary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          <span>All Academy Enrollments</span>
+        </a>
+        <a routerLink="/admin/users" class="btn-action-secondary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+          <span>User Approvals</span>
+        </a>
+      } @else {
+        <a routerLink="/enrollments" class="btn-action-primary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          <span>My Student Enrollments</span>
+        </a>
+        <a routerLink="/grade-submission" class="btn-action-secondary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>Grade Submissions</span>
+        </a>
+      }
+    </div>
+  </div>
+
+  <!-- KPI Stat Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card total-card">
+      <div class="kpi-icon-box">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      </div>
+      <div class="kpi-data">
+        <span class="kpi-label">Active Student Enrollments</span>
+        <span class="kpi-value">{{ store.totalCount() }}</span>
+        <span class="kpi-trend">
+          {{ auth.hasRole('Admin') ? 'Across All Academy Modules' : 'In Your Assigned Courses' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="kpi-card pending-card">
+      <div class="kpi-icon-box pending-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </div>
+      <div class="kpi-data">
+        <span class="kpi-label">Pending Approval Requests</span>
+        <span class="kpi-value pending-val">{{ store.pendingCount() }}</span>
+        <span class="kpi-trend pending-trend">
+          {{ auth.hasRole('Admin') ? 'Academy-Wide Applications' : 'Awaiting Your Decision' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="kpi-card approved-card">
+      <div class="kpi-icon-box approved-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <div class="kpi-data">
+        <span class="kpi-label">Approved & Active Students</span>
+        <span class="kpi-value approved-val">{{ store.approvedCount() }}</span>
+        <span class="kpi-trend approved-trend">Confirmed Admissions</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics Chart Section -->
+  <section class="analytics-card">
+    <div class="chart-header">
+      <div>
+        <h2 class="chart-title">
+          {{ auth.hasRole('Admin') ? 'Academy-Wide Course Distribution & Status Metrics' : 'Your Cohort Enrollment Distribution & Capacity Status' }}
+        </h2>
+        <p class="chart-subtitle">
+          Real-time status breakdown for {{ auth.hasRole('Admin') ? 'all institution academic modules' : 'your assigned courses' }}.
+        </p>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      @defer (on viewport; prefetch on idle(500)) {
+        <tms-analytics-chart [data]="store.scopedEnrollments()" />
+      } @placeholder {
+        <div class="skeleton-chart">
+          <div class="skeleton-shimmer"></div>
+          <span>Scroll down to initialize dynamic analytics engine...</span>
+        </div>
+      } @loading (minimum 500ms) {
+        <div class="spinner-box">
+          <div class="chart-spinner"></div>
+          <span>Rendering analytics visualization...</span>
+        </div>
+      } @error {
+        <div class="error-chart">
+          <span>Failed to load chart engine. Please check network connection.</span>
+        </div>
+      }
+    </div>
+  </section>
+</div>

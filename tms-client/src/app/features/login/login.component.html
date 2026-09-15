@@ -1,0 +1,377 @@
+<div class="auth-wrapper">
+  <div class="auth-shell">
+
+```
+<section class="auth-visual-panel">
+  <div class="visual-glow visual-glow-one"></div>
+  <div class="visual-glow visual-glow-two"></div>
+
+  <div class="visual-brand">
+    <div class="visual-logo">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none"
+           xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7L12 12L22 7L12 2Z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+        <path d="M2 17L12 22L22 17"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+        <path d="M2 12L12 17L22 12"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <span>TMS Portal</span>
+  </div>
+
+  <div class="visual-copy">
+    <span class="visual-eyebrow">TRAINING MANAGEMENT SYSTEM</span>
+
+    <h2>
+      Learn. Grow.<br>
+      <span>Achieve more.</span>
+    </h2>
+
+    <p>
+      Access your courses, track progress, manage training and stay
+      connected with your learning community.
+    </p>
+  </div>
+
+  <div class="visual-features">
+    <div>
+      <span class="feature-check">✓</span>
+      <span>Personalized learning dashboard</span>
+    </div>
+
+    <div>
+      <span class="feature-check">✓</span>
+      <span>Course progress and achievements</span>
+    </div>
+
+    <div>
+      <span class="feature-check">✓</span>
+      <span>Secure academic portal</span>
+    </div>
+  </div>
+</section>
+
+
+<mat-card class="auth-card">
+
+  <div class="auth-header">
+    <div class="auth-icon-badge">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
+           xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7L12 12L22 7L12 2Z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+        <path d="M2 17L12 22L22 17"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+        <path d="M2 12L12 17L22 12"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <div>
+      <h1 class="auth-title">
+        {{ isRegisterMode() ? 'Create an Account' : 'Welcome Back' }}
+      </h1>
+
+      <p class="auth-subtitle">
+        {{ isRegisterMode()
+          ? 'Join the Training Management Platform'
+          : 'Sign in to continue to your learning portal' }}
+      </p>
+    </div>
+  </div>
+
+
+  <div class="auth-tabs">
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="!isRegisterMode()"
+      (click)="isRegisterMode.set(false); error.set(null); successMessage.set(null);">
+      Sign In
+    </button>
+
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="isRegisterMode()"
+      (click)="isRegisterMode.set(true); error.set(null); successMessage.set(null);">
+      Register
+    </button>
+  </div>
+
+
+  <mat-card-content class="auth-body">
+
+    @if (error()) {
+      <div class="feedback-banner error-banner">
+        <svg width="18" height="18" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+
+        <span>{{ error() }}</span>
+      </div>
+    }
+
+
+    @if (successMessage()) {
+      <div class="feedback-banner success-banner">
+        <svg width="18" height="18" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+
+    <!-- SIGN IN FORM -->
+    @if (!isRegisterMode()) {
+
+      <form
+        [formGroup]="loginForm"
+        (ngSubmit)="onLogin()"
+        class="auth-form">
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Username or Institutional Email</mat-label>
+
+          <input
+            matInput
+            id="login-username"
+            formControlName="username"
+            placeholder="e.g. admin or liya@cotbe.edu.et"
+            autocomplete="username">
+
+          @if (loginForm.controls.username.hasError('required')) {
+            <mat-error>
+              Username or email is required
+            </mat-error>
+          }
+        </mat-form-field>
+
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Password</mat-label>
+
+          <input
+            matInput
+            id="login-password"
+            type="password"
+            formControlName="password"
+            placeholder="••••••••••••"
+            autocomplete="current-password">
+
+          @if (loginForm.controls.password.hasError('required')) {
+            <mat-error>
+              Password is required
+            </mat-error>
+          }
+        </mat-form-field>
+
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="loginForm.invalid || isLoading()"
+          class="submit-btn">
+
+          @if (isLoading()) {
+            <mat-spinner
+              diameter="20"
+              strokeWidth="2.5">
+            </mat-spinner>
+
+            <span>Authenticating...</span>
+          } @else {
+            <span>Sign In to Portal</span>
+          }
+
+        </button>
+
+      </form>
+    }
+
+
+    <!-- REGISTER FORM -->
+    @if (isRegisterMode()) {
+
+      <form
+        [formGroup]="registerForm"
+        (ngSubmit)="onRegister()"
+        class="auth-form">
+
+        <div class="form-row">
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>First Name</mat-label>
+
+            <input
+              matInput
+              id="register-first-name"
+              formControlName="firstName"
+              placeholder="e.g. Abebe">
+
+            @if (registerForm.controls.firstName.hasError('required')) {
+              <mat-error>
+                First name required
+              </mat-error>
+            }
+          </mat-form-field>
+
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Last Name</mat-label>
+
+            <input
+              matInput
+              id="register-last-name"
+              formControlName="lastName"
+              placeholder="e.g. Bikila">
+
+            @if (registerForm.controls.lastName.hasError('required')) {
+              <mat-error>
+                Last name required
+              </mat-error>
+            }
+          </mat-form-field>
+
+        </div>
+
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Institutional Email Address</mat-label>
+
+          <input
+            matInput
+            id="register-email"
+            type="email"
+            formControlName="email"
+            placeholder="name@cotbe.edu.et"
+            autocomplete="email">
+
+          @if (
+            registerForm.controls.email.hasError('required') ||
+            registerForm.controls.email.hasError('email')
+          ) {
+            <mat-error>
+              Valid email is required
+            </mat-error>
+          }
+        </mat-form-field>
+
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Password</mat-label>
+
+          <input
+            matInput
+            id="register-password"
+            type="password"
+            formControlName="password"
+            placeholder="Min 12 chars"
+            autocomplete="new-password">
+
+          <mat-hint class="password-hint">
+            Min 12 characters, uppercase, digit, & symbol
+            (e.g. Password1234!)
+          </mat-hint>
+
+          @if (registerForm.controls.password.hasError('required')) {
+            <mat-error>
+              Password is required
+            </mat-error>
+          }
+
+          @if (
+            registerForm.controls.password.hasError('minlength') &&
+            !registerForm.controls.password.hasError('required')
+          ) {
+            <mat-error>
+              Password must be at least 12 characters
+            </mat-error>
+          }
+
+        </mat-form-field>
+
+
+        <mat-form-field
+          appearance="outline"
+          class="form-field"
+          style="margin-top: 14px;">
+
+          <mat-label>Account Role</mat-label>
+
+          <mat-select
+            formControlName="role"
+            id="register-role">
+
+            <mat-option value="Student">
+              Student (Enroll in Courses, Track Progress)
+            </mat-option>
+
+            <mat-option value="Instructor">
+              Instructor (Manage Enrollments, Submit Grades)
+            </mat-option>
+
+          </mat-select>
+
+        </mat-form-field>
+
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="registerForm.invalid || isLoading()"
+          class="submit-btn">
+
+          @if (isLoading()) {
+            <mat-spinner
+              diameter="20"
+              strokeWidth="2.5">
+            </mat-spinner>
+
+            <span>Creating Account...</span>
+          } @else {
+            <span>Complete Registration</span>
+          }
+
+        </button>
+
+      </form>
+    }
+
+  </mat-card-content>
+
+</mat-card>
+
+
+  </div>
+</div>

@@ -1,0 +1,763 @@
+<div class="catalog-page">
+  <!-- Page Header -->
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">
+        {{ isStudent() ? 'Available Course Catalog' : 'Institutional Course Catalog' }}
+      </h1>
+      <p class="page-subtitle">
+        {{ isStudent() 
+            ? 'Browse accredited courses for this term, inspect detailed syllabi, bookmark modules, and secure your enrollment.'
+            : (isAdmin() 
+                ? 'Manage academy courses, configure seat capacities, assign faculty instructors, and author complete syllabi.'
+                : 'Explore department curriculum, review cohort seat capacities, and manage your assigned courses.') }}
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <!-- Scope Filter Tabs strictly for Instructors -->
+      @if (isInstructor()) {
+        <div class="scope-switch">
+          <button
+            type="button"
+            class="scope-tab"
+            [class.active]="store.scope() === 'my'"
+            (click)="setScope('my')"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <span>My Courses ({{ store.myCourses().length }})</span>
+          </button>
+          <button
+            type="button"
+            class="scope-tab"
+            [class.active]="store.scope() === 'all'"
+            (click)="setScope('all')"
+          >
+            <span>All Courses ({{ store.entities().length }})</span>
+          </button>
+        </div>
+      }
+
+      <div class="header-badge">
+        <span class="total-courses-pill">
+          <strong>{{ filteredCourses().length }}</strong> of {{ store.courseCount() }} Modules
+        </span>
+      </div>
+
+      <!-- Administrator Exclusive: Add New Course Button -->
+      @if (isAdmin()) {
+        <button (click)="openCreateModal()" class="btn-create-course">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Add New Course</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Search, Availability, & Department Filter Bar -->
+  <div class="toolbar-filter-bar">
+    <div class="search-field-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input
+        type="text"
+        placeholder="Search courses by code, title, or faculty instructor..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        class="search-text-input"
+      />
+      @if (searchQuery()) {
+        <button class="btn-clear-search" (click)="searchQuery.set('')">✕</button>
+      }
+    </div>
+
+    <!-- Department Filter Pills -->
+    <div class="department-filter-group">
+      @for (dept of departments; track dept.id) {
+        <button
+          type="button"
+          class="dept-pill"
+          [class.active-dept]="departmentFilter() === dept.id"
+          (click)="departmentFilter.set(dept.id)"
+        >
+          {{ dept.label }}
+        </button>
+      }
+    </div>
+
+    <div class="availability-toggle-group">
+      <button
+        type="button"
+        class="avail-pill"
+        [class.active-pill]="availabilityFilter() === 'all'"
+        (click)="availabilityFilter.set('all')"
+      >
+        All Statuses
+      </button>
+      <button
+        type="button"
+        class="avail-pill"
+        [class.active-pill]="availabilityFilter() === 'open'"
+        (click)="availabilityFilter.set('open')"
+      >
+        <span class="avail-dot dot-green"></span>
+        Seats Available
+      </button>
+      <button
+        type="button"
+        class="avail-pill"
+        [class.active-pill]="availabilityFilter() === 'full'"
+        (click)="availabilityFilter.set('full')"
+      >
+        <span class="avail-dot dot-red"></span>
+        Capacity Filled
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (store.isLoading()) {
+    <div class="loading-box">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading course catalog...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (store.error()) {
+    <div class="error-banner">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span class="error-text">{{ store.error() }}</span>
+      <button mat-button color="warn" (click)="store.loadCourses()">Retry Connection</button>
+    </div>
+  }
+
+  <!-- Course Grid -->
+  <div class="courses-grid">
+    @for (course of filteredCourses(); track course.id) {
+      <mat-card class="course-module-card" [class.owned-card]="isOwner(course)">
+        <mat-card-header class="card-header">
+          <div class="header-top-row">
+            <div class="code-pill">{{ course.code }}</div>
+            
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <!-- Student Bookmark Button -->
+              @if (isStudent()) {
+                <button
+                  type="button"
+                  (click)="toggleBookmark(course.id, $event)"
+                  class="btn-bookmark"
+                  [class.bookmarked]="isBookmarked(course.id)"
+                  [title]="isBookmarked(course.id) ? 'Remove bookmark' : 'Bookmark this course'"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" [attr.fill]="isBookmarked(course.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                </button>
+              }
+
+              <!-- Ownership Badge -->
+              @if (isInstructor()) {
+                @if (isOwner(course)) {
+                  <span class="badge-ownership badge-owner" title="You teach and manage this course">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    <span>Your Course</span>
+                  </span>
+                } @else {
+                  <span class="badge-ownership badge-other" [title]="'Instructor: ' + (course.instructorName || 'Other')">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span>Faculty Owned</span>
+                  </span>
+                }
+              } @else if (isAdmin()) {
+                <span class="badge-ownership badge-admin-tag">
+                  <span>Managed Module</span>
+                </span>
+              }
+            </div>
+          </div>
+          <mat-card-title class="course-title">
+            <a [routerLink]="['/courses', course.id]" class="course-title-link" title="Click to view full course syllabus and descriptions">
+              {{ course.title }}
+            </a>
+          </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content class="card-body">
+          <!-- Instructor Info Row -->
+          <div class="instructor-row">
+            <svg class="instructor-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span class="instructor-label">Instructor:</span>
+            <strong class="instructor-name">{{ course.instructorName || 'Dr. Alex Taylor' }}</strong>
+          </div>
+
+          <div class="capacity-row">
+            <span class="capacity-label">Seat Availability</span>
+            <span class="capacity-val"><strong>{{ course.enrollmentCount }}</strong> / {{ course.maxCapacity }} Seats</span>
+          </div>
+
+          <div class="capacity-track">
+            <div
+              class="capacity-fill"
+              [style.width.%]="(course.enrollmentCount / (course.maxCapacity || 1)) * 100"
+              [class.fill-full]="course.enrollmentCount >= course.maxCapacity"
+            ></div>
+          </div>
+
+          <div class="tags-row">
+            <span
+              class="status-chip"
+              [class.chip-full]="course.enrollmentCount >= course.maxCapacity"
+            >
+              {{ course.enrollmentCount >= course.maxCapacity ? 'Capacity Filled' : 'Open for Enrollment' }}
+            </span>
+            <span class="credits-chip">3 Credits • Fall 2026</span>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions class="card-actions">
+          <!-- Quick Preview Button -->
+          <button
+            type="button"
+            (click)="openPreviewModal(course, $event)"
+            class="btn-preview-syllabus"
+            title="Quick view syllabus milestones and learning outcomes"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <span>Preview</span>
+          </button>
+
+          <!-- View Details Link -->
+          <a
+            [routerLink]="['/courses', course.id]"
+            class="btn-view-details"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <span>Full Syllabus</span>
+          </a>
+
+          <!-- Administrator Actions -->
+          @if (isAdmin()) {
+            <div class="privileged-actions">
+              <button
+                mat-stroked-button
+                color="primary"
+                (click)="openEditModal(course)"
+                class="btn-edit-course"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                </svg>
+                <span>Edit / Assign</span>
+              </button>
+              <button
+                mat-stroked-button
+                color="warn"
+                (click)="onDelete(course.id, course.title, course.instructorId)"
+                class="btn-delete"
+              >
+                <span>Delete</span>
+              </button>
+            </div>
+          }
+
+          <!-- Instructor Actions -->
+          @if (isInstructor()) {
+            <div class="privileged-actions">
+              @if (isOwner(course)) {
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  (click)="openEditModal(course)"
+                  class="btn-edit-course"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                  </svg>
+                  <span>Edit</span>
+                </button>
+              } @else {
+                <button
+                  mat-stroked-button
+                  disabled
+                  class="btn-disabled-action"
+                  [title]="'Course taught by ' + (course.instructorName || 'another instructor')"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span>Read-Only</span>
+                </button>
+              }
+            </div>
+          }
+
+          <!-- Student: Enroll button -->
+          @if (isStudent()) {
+            <button
+              mat-flat-button
+              color="primary"
+              [routerLink]="['/enroll']"
+              [queryParams]="{ courseId: course.id }"
+              [disabled]="course.enrollmentCount >= course.maxCapacity"
+              class="btn-enroll-card"
+            >
+              {{ course.enrollmentCount >= course.maxCapacity ? 'Waitlist' : 'Enroll Now' }}
+            </button>
+          }
+        </mat-card-actions>
+      </mat-card>
+    } @empty {
+      @if (!store.isLoading()) {
+        <div class="empty-state-box">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <p>No courses found matching your filter criteria.</p>
+          @if (searchQuery() || availabilityFilter() !== 'all' || departmentFilter() !== 'all') {
+            <button (click)="searchQuery.set(''); availabilityFilter.set('all'); departmentFilter.set('all')" class="btn-clear-filters">
+              Reset Filters
+            </button>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <!-- =========================================================================
+       MODAL 1: CREATE COURSE WITH RICH DESCRIPTION & SYLLABUS (ADMIN ONLY)
+       ========================================================================= -->
+  @if (showCreateModal()) {
+    <div class="modal-backdrop" (click)="closeCreateModal()">
+      <div class="modal-card modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2>Create & Author Academic Course</h2>
+            <span class="modal-sub">Define course metadata, faculty instructor, and full curriculum description</span>
+          </div>
+          <button (click)="closeCreateModal()" class="btn-close-modal">✕</button>
+        </div>
+
+        <!-- Modal Tabs -->
+        <div class="modal-nav-tabs">
+          <button
+            type="button"
+            class="modal-tab-btn"
+            [class.active-modal-tab]="createModalTab() === 'basic'"
+            (click)="createModalTab.set('basic')"
+          >
+            1. Core Parameters & Faculty
+          </button>
+          <button
+            type="button"
+            class="modal-tab-btn"
+            [class.active-modal-tab]="createModalTab() === 'curriculum'"
+            (click)="createModalTab.set('curriculum')"
+          >
+            2. Curriculum & Syllabus Description
+          </button>
+        </div>
+
+        @if (modalError()) {
+          <div class="modal-error-alert">
+            {{ modalError() }}
+          </div>
+        }
+
+        <div class="modal-form-body">
+          @if (createModalTab() === 'basic') {
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Course Code (e.g. CS-401)</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newCourse.code"
+                  placeholder="e.g. CS-401"
+                  class="input-control"
+                />
+              </div>
+              <div class="form-group">
+                <label>Max Seat Capacity</label>
+                <input
+                  type="number"
+                  [(ngModel)]="newCourse.maxCapacity"
+                  min="5"
+                  max="200"
+                  class="input-control"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Course Title</label>
+              <input
+                type="text"
+                [(ngModel)]="newCourse.title"
+                placeholder="e.g. Advanced Cloud Architecture & Kubernetes"
+                class="input-control"
+              />
+            </div>
+
+            <!-- Assign Instructor Dropdown for Admin -->
+            <div class="form-group">
+              <label>Assign Faculty Instructor</label>
+              @if (instructorsList().length > 0) {
+                <select [(ngModel)]="newCourse.instructorId" class="input-control select-instructor">
+                  @for (inst of instructorsList(); track inst.id) {
+                    <option [value]="inst.id">
+                      {{ inst.displayName || inst.firstName + ' ' + inst.lastName }} ({{ inst.role }}) — {{ inst.email }}
+                    </option>
+                  }
+                </select>
+              } @else {
+                <input
+                  type="text"
+                  [(ngModel)]="newCourse.instructorId"
+                  placeholder="Instructor ID or Username"
+                  class="input-control"
+                />
+              }
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Academic Department</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newCourse.department"
+                  placeholder="e.g. School of Distributed Computing & DevOps"
+                  class="input-control"
+                />
+              </div>
+              <div class="form-group">
+                <label>Credits</label>
+                <input
+                  type="number"
+                  [(ngModel)]="newCourse.credits"
+                  step="0.5"
+                  min="1"
+                  max="6"
+                  class="input-control"
+                />
+              </div>
+            </div>
+          }
+
+          @if (createModalTab() === 'curriculum') {
+            <div class="form-group">
+              <label>Course Summary Catchphrase</label>
+              <textarea
+                [(ngModel)]="newCourse.summary"
+                rows="2"
+                placeholder="High-level overview of theoretical concepts and practical milestones..."
+                class="textarea-control"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Detailed Academic Description</label>
+              <textarea
+                [(ngModel)]="newCourse.description"
+                rows="4"
+                placeholder="Comprehensive description of the syllabus, lab expectations, and academic outcomes..."
+                class="textarea-control"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Prerequisites</label>
+              <input
+                type="text"
+                [(ngModel)]="newCourse.prerequisites"
+                placeholder="e.g. Networking Fundamentals & Linux Administration (CS-201)"
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Key Learning Outcomes (One per line)</label>
+              <textarea
+                [(ngModel)]="newCourse.learningOutcomesText"
+                rows="3"
+                placeholder="Outcome 1&#10;Outcome 2&#10;Outcome 3"
+                class="textarea-control"
+              ></textarea>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button (click)="closeCreateModal()" class="btn-cancel">Cancel</button>
+          <button
+            (click)="submitCreateCourse()"
+            [disabled]="isSubmitting()"
+            class="btn-submit-course"
+          >
+            {{ isSubmitting() ? 'Publishing Course...' : 'Create & Publish Course' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       MODAL 2: EDIT COURSE & DESCRIPTION MODAL (ADMIN & COURSE OWNER)
+       ========================================================================= -->
+  @if (showEditModal()) {
+    <div class="modal-backdrop" (click)="closeEditModal()">
+      <div class="modal-card modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2>Edit Course: {{ editCourseData.code }}</h2>
+            <span class="modal-sub">Update course parameters, faculty instructor, and academic syllabus</span>
+          </div>
+          <button (click)="closeEditModal()" class="btn-close-modal">✕</button>
+        </div>
+
+        <div class="modal-nav-tabs">
+          <button
+            type="button"
+            class="modal-tab-btn"
+            [class.active-modal-tab]="editModalTab() === 'basic'"
+            (click)="editModalTab.set('basic')"
+          >
+            1. Core Parameters & Faculty
+          </button>
+          <button
+            type="button"
+            class="modal-tab-btn"
+            [class.active-modal-tab]="editModalTab() === 'curriculum'"
+            (click)="editModalTab.set('curriculum')"
+          >
+            2. Curriculum & Description
+          </button>
+        </div>
+
+        @if (modalError()) {
+          <div class="modal-error-alert">
+            {{ modalError() }}
+          </div>
+        }
+
+        <div class="modal-form-body">
+          @if (editModalTab() === 'basic') {
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Course Code</label>
+                <input
+                  type="text"
+                  [(ngModel)]="editCourseData.code"
+                  class="input-control"
+                  disabled
+                />
+              </div>
+              <div class="form-group">
+                <label>Max Seat Capacity</label>
+                <input
+                  type="number"
+                  [(ngModel)]="editCourseData.maxCapacity"
+                  min="5"
+                  max="200"
+                  class="input-control"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Course Title</label>
+              <input
+                type="text"
+                [(ngModel)]="editCourseData.title"
+                placeholder="Course title"
+                class="input-control"
+              />
+            </div>
+
+            @if (isAdmin()) {
+              <div class="form-group">
+                <label>Re-Assign Faculty Instructor</label>
+                @if (instructorsList().length > 0) {
+                  <select [(ngModel)]="editCourseData.instructorId" class="input-control select-instructor">
+                    @for (inst of instructorsList(); track inst.id) {
+                      <option [value]="inst.id">
+                        {{ inst.displayName || inst.firstName + ' ' + inst.lastName }} ({{ inst.role }}) — {{ inst.email }}
+                      </option>
+                    }
+                  </select>
+                } @else {
+                  <input
+                    type="text"
+                    [(ngModel)]="editCourseData.instructorId"
+                    placeholder="Instructor ID"
+                    class="input-control"
+                  />
+                }
+              </div>
+            }
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Academic Department</label>
+                <input
+                  type="text"
+                  [(ngModel)]="editCourseData.department"
+                  class="input-control"
+                />
+              </div>
+              <div class="form-group">
+                <label>Credits</label>
+                <input
+                  type="number"
+                  [(ngModel)]="editCourseData.credits"
+                  step="0.5"
+                  min="1"
+                  max="6"
+                  class="input-control"
+                />
+              </div>
+            </div>
+          }
+
+          @if (editModalTab() === 'curriculum') {
+            <div class="form-group">
+              <label>Course Summary</label>
+              <textarea
+                [(ngModel)]="editCourseData.summary"
+                rows="2"
+                class="textarea-control"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Comprehensive Course Description</label>
+              <textarea
+                [(ngModel)]="editCourseData.description"
+                rows="4"
+                class="textarea-control"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Prerequisites</label>
+              <input
+                type="text"
+                [(ngModel)]="editCourseData.prerequisites"
+                class="input-control"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Key Learning Outcomes (One per line)</label>
+              <textarea
+                [(ngModel)]="editCourseData.learningOutcomesText"
+                rows="3"
+                class="textarea-control"
+              ></textarea>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button (click)="closeEditModal()" class="btn-cancel">Cancel</button>
+          <button
+            (click)="submitUpdateCourse()"
+            [disabled]="isSubmitting()"
+            class="btn-submit-course"
+          >
+            {{ isSubmitting() ? 'Updating Course...' : 'Save Full Changes' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       MODAL 3: INTERACTIVE SYLLABUS QUICK PREVIEW POPUP
+       ========================================================================= -->
+  @if (previewCourse(); as prev) {
+    <div class="modal-backdrop" (click)="closePreviewModal()">
+      <div class="modal-card modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="code-pill">{{ prev.course.code }}</div>
+            <div>
+              <h2>{{ prev.course.title }}</h2>
+              <span class="modal-sub">{{ prev.curriculum.department }} • {{ prev.curriculum.credits }} Credits</span>
+            </div>
+          </div>
+          <button (click)="closePreviewModal()" class="btn-close-modal">✕</button>
+        </div>
+
+        <div class="modal-scroll-body">
+          <p class="preview-description">{{ prev.curriculum.description }}</p>
+
+          <div class="preview-section">
+            <span class="preview-label">Key Learning Outcomes:</span>
+            <ul class="preview-outcomes-list">
+              @for (item of prev.curriculum.learningOutcomes; track item) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          </div>
+
+          <div class="preview-section">
+            <span class="preview-label">16-Week Syllabus Milestones:</span>
+            <div class="preview-syllabus-grid">
+              @for (mod of prev.curriculum.modules; track mod.week) {
+                <div class="preview-mod-card">
+                  <span class="preview-mod-week">{{ mod.week }}</span>
+                  <strong>{{ mod.title }}</strong>
+                  <p>{{ mod.focus }}</p>
+                  <span class="preview-mod-lab">Lab: {{ mod.lab }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <a [routerLink]="['/courses', prev.course.id]" (click)="closePreviewModal()" class="btn-view-details">
+            Open Full Course Page
+          </a>
+          @if (isStudent()) {
+            <a
+              [routerLink]="['/enroll']"
+              [queryParams]="{ courseId: prev.course.id }"
+              (click)="closePreviewModal()"
+              class="btn-submit-course"
+            >
+              Enroll in this Course
+            </a>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,246 @@
+<div class="enrollments-page">
+  <div class="page-heading">
+    <div>
+      <h1 class="page-title">
+        {{ auth.hasRole('Admin') ? 'Academy-Wide Student Enrollment Records' : 'My Student Enrollment Records' }}
+      </h1>
+      <p class="page-subtitle">
+        {{ auth.hasRole('Admin')
+            ? 'Institutional admissions registry, cohort allocations, academic terms, and finalized grades.'
+            : 'Manage admissions, course allocations, student academic goals, and finalized grades for your cohorts.' }}
+      </p>
+    </div>
+
+    <div class="header-right-tools">
+      <div class="stats-pills">
+        <span class="count-pill pending-pill">
+          <strong>{{ store.pendingCount() }}</strong> Pending Applications
+        </span>
+        <span class="count-pill approved-pill">
+          <strong>{{ store.approvedCount() }}</strong> Confirmed Admissions
+        </span>
+      </div>
+
+      <!-- Export CSV Button -->
+      <button (click)="exportCsv()" class="btn-export-csv" title="Download records report as CSV">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Export Report</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search and Filter Toolbar -->
+  <div class="toolbar-filter-bar">
+    <div class="search-field-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input
+        type="text"
+        placeholder="Search student name, ID, course, or goal notes..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearchChange($event)"
+        class="search-text-input"
+      />
+      @if (searchTerm()) {
+        <button class="btn-clear-search" (click)="onSearchChange('')">✕</button>
+      }
+    </div>
+
+    <div class="status-filter-group">
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active-chip]="statusFilter() === 'ALL'"
+        (click)="setStatusFilter('ALL')"
+      >
+        All Records ({{ dataSource.data.length }})
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active-chip]="statusFilter() === 'Pending'"
+        (click)="setStatusFilter('Pending')"
+      >
+        <span class="dot-indicator dot-pending"></span>
+        Pending ({{ store.pendingCount() }})
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active-chip]="statusFilter() === 'Approved'"
+        (click)="setStatusFilter('Approved')"
+      >
+        <span class="dot-indicator dot-approved"></span>
+        Approved ({{ store.approvedCount() }})
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active-chip]="statusFilter() === 'Rejected'"
+        (click)="setStatusFilter('Rejected')"
+      >
+        <span class="dot-indicator dot-rejected"></span>
+        Rejected
+      </button>
+    </div>
+  </div>
+
+  @if (store.isLoading()) {
+    <div class="loading-box">
+      <div class="loading-spinner"></div>
+      <span>Synchronizing enrollment records...</span>
+    </div>
+  }
+
+  @if (store.error()) {
+    <div class="error-banner">
+      <span>{{ store.error() }}</span>
+    </div>
+  }
+
+  <div class="table-container-card">
+    <table mat-table [dataSource]="dataSource" matSort class="custom-table">
+      <!-- Student Column -->
+      <ng-container matColumnDef="studentName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Student</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="student-cell">
+            <div class="student-avatar-small">
+              {{ (row.studentName || 'S')[0].toUpperCase() }}
+            </div>
+            <div>
+              <strong class="cell-primary-text">{{ row.studentName }}</strong>
+              <div class="cell-sub-text">Student ID: #{{ row.studentId }}</div>
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Course & Details Column -->
+      <ng-container matColumnDef="courseName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Course & Faculty</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="course-cell">
+            <strong class="cell-primary-text">{{ row.courseName }}</strong>
+            <div class="instructor-tag">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px;">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>{{ row.courseInstructorName || 'Dr. Alex Taylor' }}</span>
+              @if (isOwner(row)) {
+                <span class="owner-pill">Your Course</span>
+              }
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Academic Term & Goals Column -->
+      <ng-container matColumnDef="academicTerm">
+        <th mat-header-cell *matHeaderCellDef>Term & Academic Goals</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="term-cell">
+            <div class="term-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 3px;">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+              </svg>
+              <span>Fall 2026 Term</span>
+            </div>
+            @if (row.notes) {
+              <div class="note-chip" [title]="row.notes">
+                <span class="chip-label">Goal:</span> "{{ row.notes }}"
+              </div>
+            } @else {
+              <span class="standard-track-tag">Standard Curriculum Track</span>
+            }
+            @if (row.backupCourses && row.backupCourses.length > 0) {
+              <div class="backup-chip">
+                <span class="chip-label">Backup:</span> {{ row.backupCourses.join(', ') }}
+              </div>
+            }
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="status-pill" [class]="'status-' + row.status.toLowerCase()">
+            {{ row.status }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Grade Column -->
+      <ng-container matColumnDef="grade">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Evaluation</th>
+        <td mat-cell *matCellDef="let row">
+          @if (row.grade !== undefined && row.grade !== null) {
+            <span class="grade-badge">
+              <strong>{{ row.grade }}%</strong> (Grade {{ row.letterGrade || 'A' }})
+            </span>
+          } @else {
+            <span class="not-graded-tag">Not Graded</span>
+          }
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Decision</th>
+        <td mat-cell *matCellDef="let row">
+          @if (row.status === 'Pending') {
+            @if (isOwner(row) || auth.hasRole('Admin')) {
+              <div class="actions-group">
+                <button mat-flat-button color="primary" class="btn-table-approve" (click)="store.approveEnrollment(row.id)">
+                  Approve
+                </button>
+                <button mat-stroked-button class="btn-table-reject" (click)="store.rejectEnrollment(row.id)">
+                  Reject
+                </button>
+              </div>
+            } @else {
+              <span class="restricted-badge" title="Only the assigned course instructor can approve this enrollment">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: -1px; margin-right: 2px;">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>Instructor Only</span>
+              </span>
+            }
+          } @else if (row.status === 'Approved') {
+            <span class="confirmed-tag">Enrolled</span>
+          } @else {
+            <span class="rejected-tag">Declined</span>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    @if (dataSource.data.length === 0) {
+      <div class="empty-table-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <p>No enrollment records match your search or filter criteria.</p>
+      </div>
+    }
+
+    <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 20, 50]" showFirstLastButtons class="custom-paginator"></mat-paginator>
+  </div>
+</div>

@@ -1,0 +1,43 @@
+<div class="course-card">
+  <div class="card-top-bar">
+    <span class="course-code-pill">{{ course().code }}</span>
+    <span
+      class="status-pill"
+      [class.status-full]="course().enrollmentCount >= course().maxCapacity"
+    >
+      {{ course().enrollmentCount >= course().maxCapacity ? 'Class Full' : 'Open' }}
+    </span>
+  </div>
+
+  <h3 class="course-title">
+    <a [routerLink]="['/courses', course().id]">
+      {{ course().title }}
+    </a>
+  </h3>
+
+  <!-- Seat Capacity Progress Bar -->
+  <div class="capacity-section">
+    <div class="capacity-labels">
+      <span>Enrolled Seats</span>
+      <strong>{{ course().enrollmentCount }} / {{ course().maxCapacity }}</strong>
+    </div>
+    <div class="capacity-track">
+      <div
+        class="capacity-fill"
+        [style.width.%]="(course().enrollmentCount / (course().maxCapacity || 1)) * 100"
+        [class.fill-full]="course().enrollmentCount >= course().maxCapacity"
+      ></div>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <span class="credit-tag">3 Credits</span>
+    <button
+      class="btn-enroll"
+      (click)="enrollClicked.emit(course())"
+      [disabled]="course().enrollmentCount >= course().maxCapacity"
+    >
+      {{ course().enrollmentCount >= course().maxCapacity ? 'Filled' : 'Enroll Now' }}
+    </button>
+  </div>
+</div>
